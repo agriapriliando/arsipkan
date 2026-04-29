@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Metadata Berkas - ArsipKu</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      :root {
+        --brand-primary: #6d28d9;
+        --brand-primary-hover: #5b21b6;
+        --brand-light: #f5f3ff;
+        --brand-soft: #ede9fe;
+        --brand-text: #4c1d95;
+        --bg-body: #f8fafc;
+        --sidebar-width: 260px;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-body);
+        color: #1e293b;
+      }
+
+      /* Sidebar & Layout Styles (Consistent with other pages) */
+      .sidebar {
+        width: var(--sidebar-width);
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
+        z-index: 1050;
+      }
+      .sidebar-header {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .logo-box {
+        width: 40px;
+        height: 40px;
+        background: var(--brand-primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+      .sidebar-nav {
+        padding: 1rem;
+      }
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #64748b;
+        text-decoration: none;
+        border-radius: 10px;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+      }
+      .nav-link:hover,
+      .nav-link.active {
+        background: var(--brand-soft);
+        color: var(--brand-primary);
+      }
+      .nav-section-title {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        font-weight: 700;
+        margin: 1.5rem 1rem 0.5rem;
+      }
+
+      .main-content {
+        margin-left: var(--sidebar-width);
+        padding: 2rem;
+        min-height: 100vh;
+      }
+
+      /* Form Specific Styles */
+      .form-card {
+        background: #ffffff;
+        border-radius: 20px;
+        border: 1px solid #e2e8f0;
+        padding: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      }
+
+      .info-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+      }
+
+      .form-label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #475569;
+        margin-bottom: 0.5rem;
+      }
+
+      .form-control,
+      .form-select {
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 4px var(--brand-light);
+      }
+
+      .btn-save {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 2rem;
+        font-weight: 700;
+        transition: all 0.2s;
+      }
+
+      .btn-save:hover {
+        background: var(--brand-primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+      }
+
+      .status-selector {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .status-option {
+        flex: 1;
+        cursor: pointer;
+        text-align: center;
+        padding: 0.75rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+      }
+
+      .status-option input {
+        display: none;
+      }
+
+      .status-option.pending.active {
+        background: #fef3c7;
+        border-color: #f59e0b;
+        color: #92400e;
+      }
+      .status-option.valid.active {
+        background: #d1fae5;
+        border-color: #10b981;
+        color: #065f46;
+      }
+      .status-option.suspended.active {
+        background: #fee2e2;
+        border-color: #ef4444;
+        color: #991b1b;
+      }
+
+      .file-preview-box {
+        width: 100%;
+        height: 200px;
+        background: #f1f5f9;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+        border: 1px dashed #cbd5e1;
+      }
+
+      .tag-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--brand-light);
+        color: var(--brand-primary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      @media (max-width: 992px) {
+        .sidebar {
+          display: none;
+        }
+        .main-content {
+          margin-left: 0;
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-box"><i data-lucide="file-up"></i></div>
+        <h4 class="mb-0 fw-bold">ArsipKu</h4>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a href="admin-files.html" class="nav-link active"><i data-lucide="file-check"></i><span>Semua Berkas</span></a>
+        <a href="admin-uploaders.html" class="nav-link"><i data-lucide="users"></i><span>Uploader</span></a>
+        <a href="leaderboard.html" class="nav-link"><i data-lucide="award"></i><span>Leaderboard</span></a>
+        <div class="nav-section-title">Sistem</div>
+        <a href="admin-links.html" class="nav-link"><i data-lucide="link"></i><span>Link Upload</span></a>
+        <a href="settings.html" class="nav-link"><i data-lucide="settings"></i><span>Pengaturan</span></a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="admin-files.html" class="btn btn-outline-secondary btn-sm rounded-pill px-3"> <i data-lucide="arrow-left" style="width: 16px"></i> Kembali </a>
+        <h2 class="fw-bold mb-0">Kelola Metadata Berkas</h2>
+      </div>
+
+      <div class="row g-4">
+        <!-- Left Column: File Info -->
+        <div class="col-12 col-lg-4">
+          <div class="info-card sticky-top" style="top: 2rem">
+            <h5 class="fw-bold mb-4">Informasi Berkas Asli</h5>
+
+            <div class="file-preview-box">
+              <i data-lucide="file-text" style="width: 48px; height: 48px" class="mb-2"></i>
+              <span class="fw-bold text-uppercase">PDF</span>
+            </div>
+
+            <div class="mb-3">
+              <label class="text-muted small fw-bold text-uppercase">Nama File Fisik</label>
+              <p class="mb-0 fw-semibold text-break">upload_20240409_82731.pdf</p>
+            </div>
+
+            <div class="mb-3">
+              <label class="text-muted small fw-bold text-uppercase">Uploader</label>
+              <p class="mb-0 fw-semibold">Budi Santoso</p>
+              <p class="text-muted small">08123456789</p>
+            </div>
+
+            <div class="mb-3">
+              <label class="text-muted small fw-bold text-uppercase">Waktu Unggah</label>
+              <p class="mb-0 fw-semibold">09 April 2024, 14:20 WIB</p>
+            </div>
+
+            <div class="mb-0">
+              <label class="text-muted small fw-bold text-uppercase">Ukuran File</label>
+              <p class="mb-0 fw-semibold">1.24 MB</p>
+            </div>
+
+            <hr class="my-4" />
+
+            <button class="btn btn-light w-100 fw-bold d-flex align-items-center justify-content-center gap-2 py-2">
+              <i data-lucide="download" style="width: 18px"></i>
+              Unduh File Asli
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Metadata Form -->
+        <div class="col-12 col-lg-8">
+          <div class="form-card">
+            <form id="metadataForm">
+              <h5 class="fw-bold mb-4">Metadata & Validasi</h5>
+
+              <div class="mb-4">
+                <label class="form-label">Judul Berkas Final</label>
+                <input type="text" class="form-control" placeholder="Masukkan judul yang rapi untuk publik" value="Laporan Keuangan Triwulan I 2024" />
+                <div class="form-text">Judul ini akan tampil di halaman katalog publik.</div>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label">Kategori</label>
+                  <select class="form-select">
+                    <option value="">Pilih Kategori</option>
+                    <option value="keuangan" selected>Keuangan</option>
+                    <option value="pendidikan">Pendidikan</option>
+                    <option value="teknologi">Teknologi</option>
+                    <option value="hukum">Hukum</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Tipe File Final</label>
+                  <input type="text" class="form-control" value="PDF" placeholder="Contoh: PDF, JPG, ZIP" />
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label">Tag Berkas</label>
+                <div class="mb-2">
+                  <span class="tag-badge">Laporan <i data-lucide="x" style="width: 12px; cursor: pointer"></i></span>
+                  <span class="tag-badge">2024 <i data-lucide="x" style="width: 12px; cursor: pointer"></i></span>
+                  <span class="tag-badge">Keuangan <i data-lucide="x" style="width: 12px; cursor: pointer"></i></span>
+                </div>
+                <div class="input-group">
+                  <input type="text" class="form-control" placeholder="Tambah tag baru..." />
+                  <button class="btn btn-outline-secondary" type="button">Tambah</button>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label">Deskripsi Singkat</label>
+                <textarea class="form-control" rows="4" placeholder="Berikan penjelasan singkat mengenai isi berkas ini...">
+Berkas ini berisi rincian pengeluaran dan pemasukan operasional kantor selama periode Januari hingga Maret 2024.</textarea
+                >
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label">Visibilitas</label>
+                  <div class="d-flex gap-3 mt-1">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="visibility" id="visPublic" checked />
+                      <label class="form-check-label fw-medium" for="visPublic">Publik</label>
+                    </div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="visibility" id="visPrivate" />
+                      <label class="form-check-label fw-medium" for="visPrivate">Privat</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-5">
+                <label class="form-label">Status Moderasi</label>
+                <div class="status-selector">
+                  <label class="status-option pending" id="optPending">
+                    <input type="radio" name="status" value="pending" />
+                    <span>Pending</span>
+                  </label>
+                  <label class="status-option valid active" id="optValid">
+                    <input type="radio" name="status" value="valid" checked />
+                    <span>Valid</span>
+                  </label>
+                  <label class="status-option suspended" id="optSuspended">
+                    <input type="radio" name="status" value="suspended" />
+                    <span>Suspended</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center pt-4 border-top">
+                <div class="text-muted small">
+                  <i data-lucide="info" style="width: 14px" class="me-1"></i>
+                  Perubahan akan langsung berdampak pada katalog publik.
+                </div>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-light fw-bold px-4 rounded-pill">Batal</button>
+                  <button type="submit" class="btn-save rounded-pill">Simpan Metadata</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Initialize Lucide Icons -->
+    <script>
+      lucide.createIcons();
+
+      // Status Selector Interactivity
+      const statusOptions = document.querySelectorAll(".status-option");
+      statusOptions.forEach((option) => {
+        option.addEventListener("click", () => {
+          statusOptions.forEach((opt) => opt.classList.remove("active"));
+          option.classList.add("active");
+        });
+      });
+
+      // Form Submit Simulation
+      document.getElementById("metadataForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        alert("Metadata berkas berhasil diperbarui!");
+        window.location.href = "admin-files.html";
+      });
+    </script>
+  </body>
+</html>

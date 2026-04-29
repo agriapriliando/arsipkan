@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArsipKu - Dashboard Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      :root {
+        --brand-primary: #6d28d9;
+        --brand-primary-hover: #5b21b6;
+        --brand-light: #f5f3ff;
+        --brand-soft: #ede9fe;
+        --brand-text: #4c1d95;
+        --bg-body: #f8fafc;
+        --sidebar-width: 260px;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-body);
+        color: #1e293b;
+        overflow-x: hidden;
+      }
+
+      /* Sidebar Styles */
+      .sidebar {
+        width: var(--sidebar-width);
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
+        z-index: 1050;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .sidebar.show {
+        transform: translateX(0) !important;
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        display: none;
+      }
+
+      .sidebar-overlay.show {
+        display: block;
+      }
+
+      .sidebar-header {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-box {
+        width: 40px;
+        height: 40px;
+        background: var(--brand-primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 12px rgba(109, 40, 217, 0.2);
+      }
+
+      .sidebar-nav {
+        padding: 1rem;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #64748b;
+        text-decoration: none;
+        border-radius: 10px;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .nav-link:hover {
+        background: var(--brand-light);
+        color: var(--brand-primary);
+      }
+
+      .nav-link.active {
+        background: var(--brand-soft);
+        color: var(--brand-primary);
+      }
+
+      .nav-link i {
+        width: 20px;
+        height: 20px;
+      }
+
+      .nav-section-title {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        font-weight: 700;
+        margin: 1.5rem 1rem 0.5rem;
+      }
+
+      /* Main Content Styles */
+      .main-content {
+        margin-left: var(--sidebar-width);
+        min-height: 100vh;
+        padding: 2rem;
+        transition: all 0.3s;
+      }
+
+      .top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        gap: 1rem;
+      }
+
+      .search-box {
+        position: relative;
+        max-width: 400px;
+        width: 100%;
+      }
+
+      .search-box input {
+        padding-left: 2.5rem;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        height: 42px;
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+      }
+
+      /* Card Styles */
+      .stat-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s;
+        height: 100%;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      .icon-purple {
+        background: #f5f3ff;
+        color: #6d28d9;
+      }
+      .icon-amber {
+        background: #fffbeb;
+        color: #d97706;
+      }
+      .icon-emerald {
+        background: #ecfdf5;
+        color: #059669;
+      }
+      .icon-rose {
+        background: #fff1f2;
+        color: #e11d48;
+      }
+
+      .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      /* Table Styles */
+      .table-container {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        margin-top: 2rem;
+      }
+
+      .table-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .table thead th {
+        background: #f8fafc;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        font-weight: 700;
+        padding: 1rem 1.5rem;
+        border: none;
+      }
+
+      .table tbody td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .badge-status {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .badge-valid {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .badge-suspended {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      .btn-brand {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .btn-brand:hover {
+        background: var(--brand-primary-hover);
+        color: white;
+        box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+      }
+
+      .btn-outline-brand {
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #475569;
+        border-radius: 10px;
+        padding: 0.6rem 1.25rem;
+        font-weight: 600;
+      }
+
+      .btn-outline-brand:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+      }
+
+      /* Leaderboard Styles */
+      .leaderboard-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        padding: 1.5rem;
+      }
+
+      .leaderboard-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .leaderboard-item:last-child {
+        border-bottom: none;
+      }
+
+      .rank-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.875rem;
+      }
+
+      .rank-1 {
+        background: #fef3c7;
+        color: #d97706;
+      }
+      .rank-2 {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      .rank-3 {
+        background: #fff7ed;
+        color: #c2410c;
+      }
+
+      .mobile-toggle {
+        display: none;
+        background: white;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem;
+        border-radius: 8px;
+        color: #64748b;
+      }
+
+      @media (max-width: 992px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+        .main-content {
+          margin-left: 0;
+          padding: 1.5rem;
+        }
+        .mobile-toggle {
+          display: block;
+        }
+        .top-header {
+          flex-direction: column-reverse;
+          align-items: stretch;
+        }
+        .search-box {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="d-flex align-items-center gap-2">
+          <div class="logo-box">
+            <i data-lucide="file-up"></i>
+          </div>
+          <h4 class="mb-0 fw-bold" style="color: #1e293b">ArsipKu</h4>
+        </div>
+        <button class="btn d-lg-none p-0 text-muted" id="closeSidebar">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-nav">
+        <a href="index.html" class="nav-link active">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="admin-files.html" class="nav-link">
+          <i data-lucide="file-clock"></i>
+          <span>Pending Review</span>
+        </a>
+        <a href="admin-files.html" class="nav-link">
+          <i data-lucide="file-check"></i>
+          <span>Semua Berkas</span>
+        </a>
+        <a href="admin-uploaders.html" class="nav-link">
+          <i data-lucide="users"></i>
+          <span>Uploader</span>
+        </a>
+        <a href="leaderboard.html" class="nav-link">
+          <i data-lucide="award"></i>
+          <span>Leaderboard</span>
+        </a>
+
+        <div class="nav-section-title">Sistem</div>
+        <a href="admin-links.html" class="nav-link">
+          <i data-lucide="link"></i>
+          <span>Link Upload</span>
+        </a>
+        <a href="settings.html" class="nav-link">
+          <i data-lucide="settings"></i>
+          <span>Pengaturan</span>
+        </a>
+        <a href="#" class="nav-link text-danger mt-4">
+          <i data-lucide="log-out"></i>
+          <span>Keluar</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Top Header -->
+      <div class="top-header">
+        <div class="d-flex align-items-center gap-3">
+          <button class="mobile-toggle" id="mobileToggle">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Cari berkas atau uploader..." />
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between justify-content-lg-end gap-3">
+          <div class="d-flex align-items-center gap-3">
+            <button class="btn p-2 text-secondary position-relative">
+              <i data-lucide="bell"></i>
+              <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+            </button>
+            <div class="vr mx-2 d-none d-sm-block" style="height: 30px"></div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px">
+                <span class="fw-bold text-primary small">AD</span>
+              </div>
+              <div class="d-none d-sm-block">
+                <p class="mb-0 fw-bold small">Admin Utama</p>
+                <p class="mb-0 text-muted" style="font-size: 0.7rem">Superadmin</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Title -->
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Ringkasan Dashboard</h2>
+          <p class="text-muted mb-0">Pantau aktivitas arsip dan kontribusi uploader hari ini.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-brand d-flex align-items-center gap-2">
+            <i data-lucide="download" style="width: 18px"></i>
+            <span>Export</span>
+          </button>
+          <button class="btn btn-brand d-flex align-items-center gap-2" onclick="window.location.href = 'admin-links.html'">
+            <i data-lucide="plus-circle" style="width: 18px"></i>
+            <span>Link Upload</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="row g-4">
+        <div class="col-12 col-md-6 col-xl-3">
+          <div class="stat-card">
+            <div class="stat-icon icon-purple">
+              <i data-lucide="file-up"></i>
+            </div>
+            <div class="stat-value">1,284</div>
+            <div class="stat-label">Total Berkas</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+          <div class="stat-card">
+            <div class="stat-icon icon-amber">
+              <i data-lucide="file-clock"></i>
+            </div>
+            <div class="stat-value">42</div>
+            <div class="stat-label">Pending Review</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+          <div class="stat-card">
+            <div class="stat-icon icon-emerald">
+              <i data-lucide="file-check"></i>
+            </div>
+            <div class="stat-value">1,198</div>
+            <div class="stat-label">Berkas Valid</div>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-3">
+          <div class="stat-card">
+            <div class="stat-icon icon-rose">
+              <i data-lucide="file-x"></i>
+            </div>
+            <div class="stat-value">44</div>
+            <div class="stat-label">Suspended</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mt-2">
+        <!-- Recent Uploads Table -->
+        <div class="col-12 col-xl-8">
+          <div class="table-container">
+            <div class="table-header">
+              <h5 class="mb-0 fw-bold">Upload Terbaru</h5>
+              <a href="admin-files.html" class="text-primary text-decoration-none small fw-bold">Lihat Semua</a>
+            </div>
+            <div class="table-responsive">
+              <table class="table mb-0" id="recentUploadsTable">
+                <thead>
+                  <tr>
+                    <th>Berkas</th>
+                    <th>Uploader</th>
+                    <th>Status</th>
+                    <th>Waktu</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="file-row">
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="bg-light rounded p-2 text-muted fw-bold small">PDF</div>
+                        <div>
+                          <p class="mb-0 fw-semibold small file-title">Laporan Keuangan Q1</p>
+                          <p class="mb-0 text-muted" style="font-size: 0.7rem">Public</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="small text-secondary uploader-name">Budi Santoso</span></td>
+                    <td><span class="badge-status badge-pending">Pending</span></td>
+                    <td><span class="small text-muted">10m ago</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-link text-muted p-0"><i data-lucide="more-vertical" style="width: 18px"></i></button>
+                    </td>
+                  </tr>
+                  <tr class="file-row">
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="bg-light rounded p-2 text-muted fw-bold small">JPG</div>
+                        <div>
+                          <p class="mb-0 fw-semibold small file-title">Sertifikat IT</p>
+                          <p class="mb-0 text-muted" style="font-size: 0.7rem">Public</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="small text-secondary uploader-name">Siti Aminah</span></td>
+                    <td><span class="badge-status badge-valid">Valid</span></td>
+                    <td><span class="small text-muted">1h ago</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-link text-muted p-0"><i data-lucide="more-vertical" style="width: 18px"></i></button>
+                    </td>
+                  </tr>
+                  <tr class="file-row">
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="bg-light rounded p-2 text-muted fw-bold small">DOCX</div>
+                        <div>
+                          <p class="mb-0 fw-semibold small file-title">Draft Kontrak Vendor</p>
+                          <p class="mb-0 text-muted" style="font-size: 0.7rem">Private</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="small text-secondary uploader-name">Agus Setiawan</span></td>
+                    <td><span class="badge-status badge-valid">Valid</span></td>
+                    <td><span class="small text-muted">3h ago</span></td>
+                    <td class="text-end">
+                      <button class="btn btn-link text-muted p-0"><i data-lucide="more-vertical" style="width: 18px"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaderboard & Info -->
+        <div class="col-12 col-xl-4">
+          <div class="leaderboard-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="mb-0 fw-bold">Top Uploader</h5>
+              <span class="badge bg-primary-subtle text-primary fw-bold">Bulan Ini</span>
+            </div>
+            <div class="leaderboard-item">
+              <div class="rank-badge rank-1">1</div>
+              <div class="flex-grow-1">
+                <p class="mb-0 fw-bold small">Budi Santoso</p>
+                <p class="mb-0 text-muted" style="font-size: 0.7rem">120 Berkas Valid</p>
+              </div>
+              <div class="text-end">
+                <p class="mb-0 fw-bold text-primary small">2450</p>
+                <p class="mb-0 text-muted text-uppercase fw-bold" style="font-size: 0.5rem">Poin</p>
+              </div>
+            </div>
+            <div class="leaderboard-item">
+              <div class="rank-badge rank-2">2</div>
+              <div class="flex-grow-1">
+                <p class="mb-0 fw-bold small">Siti Aminah</p>
+                <p class="mb-0 text-muted" style="font-size: 0.7rem">98 Berkas Valid</p>
+              </div>
+              <div class="text-end">
+                <p class="mb-0 fw-bold text-primary small">2100</p>
+                <p class="mb-0 text-muted text-uppercase fw-bold" style="font-size: 0.5rem">Poin</p>
+              </div>
+            </div>
+            <div class="leaderboard-item">
+              <div class="rank-badge rank-3">3</div>
+              <div class="flex-grow-1">
+                <p class="mb-0 fw-bold small">Agus Setiawan</p>
+                <p class="mb-0 text-muted" style="font-size: 0.7rem">85 Berkas Valid</p>
+              </div>
+              <div class="text-end">
+                <p class="mb-0 fw-bold text-primary small">1850</p>
+                <p class="mb-0 text-muted text-uppercase fw-bold" style="font-size: 0.5rem">Poin</p>
+              </div>
+            </div>
+            <button class="btn btn-light w-100 mt-4 fw-bold small py-2" onclick="window.location.href = 'leaderboard.html'">Lihat Selengkapnya</button>
+          </div>
+
+          <div class="p-4 rounded-4 text-white position-relative overflow-hidden" style="background: var(--brand-primary)">
+            <div class="position-relative z-1">
+              <h5 class="fw-bold">Butuh Bantuan?</h5>
+              <p class="small opacity-75 mb-3">Pelajari cara mengelola berkas dan uploader melalui panduan dokumentasi kami.</p>
+              <button class="btn btn-light btn-sm fw-bold px-3">Buka Panduan</button>
+            </div>
+            <i data-lucide="file-up" class="position-absolute" style="right: -20px; bottom: -20px; width: 120px; height: 120px; opacity: 0.1; transform: rotate(15deg)"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Initialize Lucide Icons -->
+    <script>
+      lucide.createIcons();
+
+      // Mobile Sidebar Toggle
+      const mobileToggle = document.getElementById("mobileToggle");
+      const closeSidebar = document.getElementById("closeSidebar");
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("sidebarOverlay");
+
+      function toggleSidebar() {
+        sidebar.classList.toggle("show");
+        overlay.classList.toggle("show");
+        document.body.style.overflow = sidebar.classList.contains("show") ? "hidden" : "";
+      }
+
+      mobileToggle.addEventListener("click", toggleSidebar);
+      closeSidebar.addEventListener("click", toggleSidebar);
+      overlay.addEventListener("click", toggleSidebar);
+
+      // Mock Search Functionality
+      const searchInput = document.getElementById("searchInput");
+      const fileRows = document.querySelectorAll(".file-row");
+
+      searchInput.addEventListener("input", (e) => {
+        const term = e.target.value.toLowerCase();
+        fileRows.forEach((row) => {
+          const title = row.querySelector(".file-title").textContent.toLowerCase();
+          const uploader = row.querySelector(".uploader-name").textContent.toLowerCase();
+          if (title.includes(term) || uploader.includes(term)) {
+            row.style.display = "";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

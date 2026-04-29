@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arsip Global - ArsipKu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      :root {
+        --brand-primary: #6d28d9;
+        --brand-primary-hover: #5b21b6;
+        --brand-soft: #ede9fe;
+        --bg-body: #f8fafc;
+        --sidebar-width: 260px;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-body);
+        color: #1e293b;
+      }
+      .sidebar {
+        width: var(--sidebar-width);
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background: #ffffff;
+        border-right: 1px solid #e2e8f0;
+        z-index: 1000;
+      }
+      .sidebar-header {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .logo-box {
+        width: 40px;
+        height: 40px;
+        background: var(--brand-primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+      .sidebar-nav {
+        padding: 1rem;
+      }
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #64748b;
+        text-decoration: none;
+        border-radius: 10px;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+      }
+      .nav-link:hover,
+      .nav-link.active {
+        background: var(--brand-soft);
+        color: var(--brand-primary);
+      }
+      .nav-section-title {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        font-weight: 700;
+        margin: 1.5rem 1rem 0.5rem;
+      }
+      .main-content {
+        margin-left: var(--sidebar-width);
+        padding: 2rem;
+      }
+
+      .table-container {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+      }
+      .table thead th {
+        background: #f8fafc;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #64748b;
+        padding: 1rem 1.5rem;
+        border: none;
+      }
+      .table tbody td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .btn-view {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #64748b;
+        transition: all 0.2s;
+      }
+      .btn-view:hover {
+        border-color: var(--brand-primary);
+        color: var(--brand-primary);
+      }
+
+      @media (max-width: 992px) {
+        .sidebar {
+          display: none;
+        }
+        .main-content {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-box"><i data-lucide="file-up"></i></div>
+        <h4 class="mb-0 fw-bold">ArsipKu</h4>
+      </div>
+      <div class="sidebar-nav">
+        <a href="user-dashboard.html" class="nav-link"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a href="user-archive.html" class="nav-link active"><i data-lucide="archive"></i><span>Arsip Global</span></a>
+        <a href="user-my-files.html" class="nav-link"><i data-lucide="folder-user"></i><span>Berkas Saya</span></a>
+        <div class="nav-section-title">Aksi</div>
+        <a href="upload.html" class="nav-link"><i data-lucide="upload-cloud"></i><span>Unggah Baru</span></a>
+        <a href="leaderboard.html" class="nav-link"><i data-lucide="award"></i><span>Leaderboard</span></a>
+        <hr class="my-3 mx-3" />
+        <a href="login.html" class="nav-link text-danger"><i data-lucide="log-out"></i><span>Logout</span></a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Arsip Global (Read-Only)</h2>
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control form-control-sm" placeholder="Cari di arsip..." style="width: 250px; border-radius: 10px" />
+        </div>
+      </div>
+
+      <div class="alert alert-info border-0 rounded-4 d-flex align-items-center gap-3 mb-4" style="background: var(--brand-light); color: var(--brand-primary)">
+        <i data-lucide="info" style="width: 20px"></i>
+        <span class="small fw-medium">Anda memiliki akses baca ke seluruh berkas publik dan privat dalam sistem.</span>
+      </div>
+
+      <div class="table-container">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Berkas</th>
+                <th>Kategori</th>
+                <th>Uploader</th>
+                <th>Visibilitas</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="bg-light rounded p-2 text-muted fw-bold small">PDF</div>
+                    <span class="fw-semibold small">Laporan Tahunan 2023.pdf</span>
+                  </div>
+                </td>
+                <td><span class="small">Keuangan</span></td>
+                <td><span class="small text-muted">Admin</span></td>
+                <td><span class="badge bg-light text-dark rounded-pill px-3 py-1 small" style="font-size: 0.7rem">Publik</span></td>
+                <td>
+                  <a href="public-file-detail.html" class="btn-view" title="Lihat Detail"><i data-lucide="eye" style="width: 16px"></i></a>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="bg-light rounded p-2 text-muted fw-bold small">DOCX</div>
+                    <span class="fw-semibold small">Data_Rahasia_Internal.docx</span>
+                  </div>
+                </td>
+                <td><span class="small">Hukum</span></td>
+                <td><span class="small text-muted">Manager</span></td>
+                <td><span class="badge bg-secondary text-white rounded-pill px-3 py-1 small" style="font-size: 0.7rem">Privat</span></td>
+                <td>
+                  <a href="public-file-detail.html" class="btn-view" title="Lihat Detail"><i data-lucide="eye" style="width: 16px"></i></a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

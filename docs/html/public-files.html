@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Katalog Berkas Publik - ArsipKu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      :root {
+        --brand-primary: #6d28d9;
+        --brand-primary-hover: #5b21b6;
+        --brand-light: #f5f3ff;
+        --bg-body: #f8fafc;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-body);
+        color: #1e293b;
+      }
+
+      .navbar {
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 0;
+      }
+
+      .logo-box {
+        width: 32px;
+        height: 32px;
+        background: var(--brand-primary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .hero-section {
+        background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+        padding: 4rem 0;
+        color: white;
+        text-align: center;
+      }
+
+      .search-container {
+        max-width: 700px;
+        margin: -2rem auto 0;
+        background: white;
+        border-radius: 20px;
+        padding: 0.75rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .search-input {
+        flex-grow: 1;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        outline: none;
+        font-size: 1rem;
+      }
+
+      .btn-search {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0 1.5rem;
+        font-weight: 600;
+      }
+
+      .filter-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 100px;
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+      }
+
+      .filter-badge:hover,
+      .filter-badge.active {
+        background: var(--brand-primary);
+        color: white;
+        border-color: var(--brand-primary);
+      }
+
+      .file-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        padding: 1.5rem;
+        transition: all 0.2s;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .file-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        border-color: var(--brand-primary);
+      }
+
+      .file-icon {
+        width: 48px;
+        height: 48px;
+        background: #f8fafc;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-weight: 800;
+        font-size: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .btn-download {
+        background: var(--brand-light);
+        color: var(--brand-primary);
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        font-weight: 700;
+        font-size: 0.875rem;
+        width: 100%;
+        margin-top: auto;
+        transition: all 0.2s;
+      }
+
+      .btn-download:hover {
+        background: var(--brand-primary);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar sticky-top">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+          <div class="logo-box">
+            <i data-lucide="file-up" style="width: 18px"></i>
+          </div>
+          <span class="fw-bold text-dark">ArsipKu</span>
+        </a>
+        <div class="d-flex gap-3">
+          <a href="leaderboard.html" class="text-dark text-decoration-none small fw-bold">Leaderboard</a>
+          <a href="upload.html" class="btn btn-sm btn-primary px-3 fw-bold rounded-pill">Upload</a>
+        </div>
+      </div>
+    </nav>
+
+    <section class="hero-section">
+      <div class="container">
+        <h1 class="fw-bold mb-2">Katalog Berkas Publik</h1>
+        <p class="opacity-75">Temukan dan unduh berkas arsip yang telah divalidasi oleh tim kami.</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Cari judul berkas, kategori, atau uploader..." />
+        <button class="btn-search">Cari</button>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 justify-content-center mt-4 mb-5">
+        <a href="#" class="filter-badge active">Semua</a>
+        <a href="#" class="filter-badge">Pendidikan</a>
+        <a href="#" class="filter-badge">Keuangan</a>
+        <a href="#" class="filter-badge">Teknologi</a>
+        <a href="#" class="filter-badge">Dokumentasi</a>
+        <a href="#" class="filter-badge">Lainnya</a>
+      </div>
+
+      <div class="row g-4 mb-5">
+        <!-- Mock File Cards -->
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+          <div class="file-card">
+            <div class="file-icon">PDF</div>
+            <h6 class="fw-bold mb-1">Laporan Tahunan 2023</h6>
+            <p class="text-muted small mb-3">Kategori: Keuangan</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="small text-secondary"><i data-lucide="user" style="width: 14px"></i> Budi S.</span>
+              <span class="small text-secondary"><i data-lucide="download" style="width: 14px"></i> 1.2k</span>
+            </div>
+            <button class="btn-download">Unduh Berkas</button>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+          <div class="file-card">
+            <div class="file-icon">JPG</div>
+            <h6 class="fw-bold mb-1">Sertifikat Workshop IT</h6>
+            <p class="text-muted small mb-3">Kategori: Pendidikan</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="small text-secondary"><i data-lucide="user" style="width: 14px"></i> Siti A.</span>
+              <span class="small text-secondary"><i data-lucide="download" style="width: 14px"></i> 450</span>
+            </div>
+            <button class="btn-download">Unduh Berkas</button>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+          <div class="file-card">
+            <div class="file-icon">DOCX</div>
+            <h6 class="fw-bold mb-1">Panduan Penggunaan App</h6>
+            <p class="text-muted small mb-3">Kategori: Teknologi</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="small text-secondary"><i data-lucide="user" style="width: 14px"></i> Admin</span>
+              <span class="small text-secondary"><i data-lucide="download" style="width: 14px"></i> 890</span>
+            </div>
+            <button class="btn-download">Unduh Berkas</button>
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+          <div class="file-card">
+            <div class="file-icon">PNG</div>
+            <h6 class="fw-bold mb-1">Struktur Organisasi</h6>
+            <p class="text-muted small mb-3">Kategori: Lainnya</p>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="small text-secondary"><i data-lucide="user" style="width: 14px"></i> Agus S.</span>
+              <span class="small text-secondary"><i data-lucide="download" style="width: 14px"></i> 230</span>
+            </div>
+            <button class="btn-download">Unduh Berkas</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="py-5 bg-white border-top mt-5">
+      <div class="container text-center">
+        <p class="text-muted small mb-0">&copy; 2024 ArsipKu. Dikelola secara profesional untuk kemudahan akses informasi.</p>
+      </div>
+    </footer>
+
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

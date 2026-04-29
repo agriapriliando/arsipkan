@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Berkas - ArsipKu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      :root {
+        --brand-primary: #6d28d9;
+        --brand-primary-hover: #5b21b6;
+        --brand-light: #f5f3ff;
+        --bg-body: #f8fafc;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--bg-body);
+        color: #1e293b;
+      }
+      .navbar {
+        background: white;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 0;
+      }
+      .logo-box {
+        width: 32px;
+        height: 32px;
+        background: var(--brand-primary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .detail-card {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #e2e8f0;
+        padding: 2.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      }
+      .file-icon-large {
+        width: 80px;
+        height: 80px;
+        background: var(--brand-light);
+        color: var(--brand-primary);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .meta-icon {
+        width: 32px;
+        height: 32px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+      }
+
+      .tag-pill {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 0.4rem 1rem;
+        border-radius: 100px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .tag-pill:hover {
+        background: var(--brand-soft);
+        color: var(--brand-primary);
+      }
+
+      .btn-download-main {
+        background: var(--brand-primary);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        padding: 1rem 2rem;
+        font-weight: 700;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        transition: all 0.2s;
+      }
+      .btn-download-main:hover {
+        background: var(--brand-primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(109, 40, 217, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar sticky-top">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="public-files.html">
+          <div class="logo-box"><i data-lucide="file-up" style="width: 18px"></i></div>
+          <span class="fw-bold text-dark">ArsipKu</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+          <div class="detail-card">
+            <div class="row g-5">
+              <div class="col-12 col-md-4">
+                <div class="file-icon-large mx-auto mx-md-0">
+                  <i data-lucide="file-text" style="width: 40px; height: 40px"></i>
+                </div>
+                <h4 class="fw-bold mb-4 text-center text-md-start">Laporan Keuangan Triwulan I 2024</h4>
+
+                <div class="meta-item">
+                  <div class="meta-icon"><i data-lucide="user" style="width: 16px"></i></div>
+                  <div>
+                    <p class="mb-0 text-muted small">Uploader</p>
+                    <p class="mb-0 fw-bold small">Budi Santoso</p>
+                  </div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-icon"><i data-lucide="calendar" style="width: 16px"></i></div>
+                  <div>
+                    <p class="mb-0 text-muted small">Tanggal Validasi</p>
+                    <p class="mb-0 fw-bold small">09 Apr 2024</p>
+                  </div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-icon"><i data-lucide="database" style="width: 16px"></i></div>
+                  <div>
+                    <p class="mb-0 text-muted small">Ukuran File</p>
+                    <p class="mb-0 fw-bold small">1.24 MB</p>
+                  </div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-icon"><i data-lucide="eye" style="width: 16px"></i></div>
+                  <div>
+                    <p class="mb-0 text-muted small">Dilihat</p>
+                    <p class="mb-0 fw-bold small">1,420 Kali</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-8">
+                <h5 class="fw-bold mb-3">Deskripsi Berkas</h5>
+                <p class="text-muted mb-4" style="line-height: 1.8">
+                  Berkas ini berisi rincian pengeluaran dan pemasukan operasional kantor selama periode Januari hingga Maret 2024. Laporan ini telah divalidasi oleh tim audit
+                  internal dan siap digunakan sebagai referensi penyusunan anggaran periode berikutnya.
+                </p>
+
+                <h5 class="fw-bold mb-3">Kategori & Tag</h5>
+                <div class="d-flex flex-wrap gap-2 mb-5">
+                  <span class="badge bg-primary rounded-pill px-3 py-2">Keuangan</span>
+                  <a href="#" class="tag-pill">#laporan</a>
+                  <a href="#" class="tag-pill">#2024</a>
+                  <a href="#" class="tag-pill">#anggaran</a>
+                  <a href="#" class="tag-pill">#audit</a>
+                </div>
+
+                <div class="bg-light p-4 rounded-4 mb-4">
+                  <div class="d-flex align-items-center gap-3 mb-3">
+                    <i data-lucide="shield-check" class="text-success"></i>
+                    <span class="fw-bold small">Berkas Terverifikasi Aman</span>
+                  </div>
+                  <p class="text-muted small mb-0">Berkas ini telah melalui proses pemindaian virus dan verifikasi metadata oleh admin ArsipKu.</p>
+                </div>
+
+                <button class="btn-download-main"><i data-lucide="download"></i> Unduh Berkas Sekarang</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
