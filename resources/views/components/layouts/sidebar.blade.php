@@ -8,6 +8,9 @@
         'superadmin' => [
             ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'superadmin.dashboard'],
             ['label' => 'Tenant', 'icon' => 'building-2', 'route' => 'superadmin.tenants.index'],
+            ['label' => 'Admin Tenant', 'icon' => 'shield-user', 'route' => 'superadmin.admins.index'],
+            ['label' => 'Master Data', 'icon' => 'tags', 'route' => 'superadmin.master-data.index'],
+            ['label' => 'Link Upload', 'icon' => 'link', 'route' => 'superadmin.upload-links.index'],
         ],
         'tenant-admin' => [
             ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'tenant.admin.dashboard', 'params' => $tenantParams],
@@ -60,9 +63,17 @@
 
         @if($variant === 'tenant-admin')
             <div class="nav-section-title">Sistem</div>
-            <a href="{{ route('tenant.admin.dashboard', $tenantParams) }}" class="nav-link" title="Link Upload">
+            <a href="{{ route('tenant.admin.upload-links.index', $tenantParams) }}" class="nav-link {{ request()->routeIs('tenant.admin.upload-links.*') ? 'active' : '' }}" title="Link Upload">
                 <i data-lucide="link"></i>
                 <span class="sidebar-label">Link Upload</span>
+            </a>
+            <a href="{{ route('tenant.admin.master-data.index', $tenantParams) }}#kategori" class="nav-link {{ request()->routeIs('tenant.admin.master-data.*') ? 'active' : '' }}" title="CRUD Kategori">
+                <i data-lucide="folder-tree"></i>
+                <span class="sidebar-label">CRUD Kategori</span>
+            </a>
+            <a href="{{ route('tenant.admin.master-data.index', $tenantParams) }}#tag" class="nav-link {{ request()->routeIs('tenant.admin.master-data.*') ? 'active' : '' }}" title="CRUD Tag">
+                <i data-lucide="tags"></i>
+                <span class="sidebar-label">CRUD Tag</span>
             </a>
             <a href="{{ route('tenant.admin.dashboard', $tenantParams) }}" class="nav-link" title="Pengaturan">
                 <i data-lucide="settings"></i>

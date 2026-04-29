@@ -41,4 +41,22 @@ class UploadLink extends Model
     {
         return $this->hasMany(File::class);
     }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && ! $this->expires_at->isFuture();
+    }
+
+    public function isUsageLimitReached(): bool
+    {
+        return $this->max_usage !== null && $this->usage_count >= $this->max_usage;
+    }
+
+    public function isUsableForGuestUpload(): bool
+    {
+        return $this->tenant?->is_active === true
+            && $this->is_active
+            && ! $this->isExpired()
+            && ! $this->isUsageLimitReached();
+    }
 }

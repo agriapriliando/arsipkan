@@ -521,6 +521,39 @@ body.sidebar-collapsed .nav-link svg {
   color: #475569;
 }
 
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.65rem 0.45rem 0.8rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.tag-chip-action {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text-muted);
+}
+
+.tag-chip-action:hover {
+  color: var(--brand-primary);
+}
+
+.tag-chip-action svg {
+  width: 14px;
+  height: 14px;
+}
+
 @media (max-width: 992px) {
   body.sidebar-collapsed .sidebar {
     width: var(--sidebar-width);

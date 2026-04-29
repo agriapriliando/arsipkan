@@ -3,14 +3,14 @@
 @php
     $user = match ($variant) {
         'superadmin' => auth('superadmin')->user(),
-        'tenant-admin' => auth('tenant_admin')->user(),
+        'tenant-admin' => auth('tenant_admin')->user() ?? auth('superadmin')->user(),
         'user' => auth('user_account')->user(),
         default => null,
     };
 
     $role = match ($variant) {
         'superadmin' => 'Superadmin',
-        'tenant-admin' => 'Admin Tenant',
+        'tenant-admin' => auth('superadmin')->check() && ! auth('tenant_admin')->check() ? 'Superadmin' : 'Admin Tenant',
         'user' => 'User Uploader',
         default => 'Publik',
     };

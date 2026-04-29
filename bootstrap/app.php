@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureSuperadminAuthenticated;
 use App\Http\Middleware\EnsureTenantAdminAuthenticated;
+use App\Http\Middleware\EnsureTenantManagerAuthenticated;
 use App\Http\Middleware\EnsureUserAccountAuthenticated;
 use App\Http\Middleware\EnsureUserAccountPasswordChanged;
 use App\Http\Middleware\ResolveTenant;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.superadmin' => EnsureSuperadminAuthenticated::class,
             'auth.tenant_admin' => EnsureTenantAdminAuthenticated::class,
+            'auth.tenant_manager' => EnsureTenantManagerAuthenticated::class,
             'auth.user_account' => EnsureUserAccountAuthenticated::class,
             'user.password.changed' => EnsureUserAccountPasswordChanged::class,
             'tenant' => ResolveTenant::class,

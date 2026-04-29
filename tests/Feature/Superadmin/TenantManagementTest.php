@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Superadmin\TenantManager;
+use App\Livewire\Superadmin\TenantMasterDataEntry;
+use App\Livewire\Superadmin\TenantUploadLinkEntry;
 use App\Models\AdminUser;
 use App\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,6 +31,49 @@ it('protects the tenant management page for superadmins', function () {
         ->get('/superadmin/tenants')
         ->assertOk()
         ->assertSee('Manajemen Tenant');
+});
+
+it('protects the tenant master data entry page for superadmins', function () {
+    $this->get('/superadmin/master-data')
+        ->assertRedirect('/superadmin/login');
+
+    Tenant::create([
+        'code' => 'MD',
+        'name' => 'Tenant Master Data',
+        'slug' => 'tenant-master-data',
+        'storage_quota_bytes' => 10 * 1024 * 1024 * 1024,
+        'storage_used_bytes' => 0,
+        'storage_warning_threshold_percent' => 80,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs(createSuperadminForTenantManagement(), 'superadmin')
+        ->get('/superadmin/master-data')
+        ->assertOk()
+        ->assertSee('Master Data Tenant')
+        ->assertSee('CRUD Kategori')
+        ->assertSee('CRUD Tag');
+});
+
+it('protects the tenant upload link entry page for superadmins', function () {
+    $this->get('/superadmin/upload-links')
+        ->assertRedirect('/superadmin/login');
+
+    Tenant::create([
+        'code' => 'UL',
+        'name' => 'Tenant Upload Link',
+        'slug' => 'tenant-upload-link',
+        'storage_quota_bytes' => 10 * 1024 * 1024 * 1024,
+        'storage_used_bytes' => 0,
+        'storage_warning_threshold_percent' => 80,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs(createSuperadminForTenantManagement(), 'superadmin')
+        ->get('/superadmin/upload-links')
+        ->assertOk()
+        ->assertSee('Link Upload Tenant')
+        ->assertSee('Kelola Link Upload');
 });
 
 it('creates tenants from the livewire manager', function () {
@@ -118,6 +163,46 @@ it('stores superadmin tenant context when entering an active tenant', function (
     Livewire::test(TenantManager::class)
         ->call('enterTenant', $tenant->id)
         ->assertRedirect('/tenant-context');
+
+    $this->assertSame($tenant->id, session('superadmin_tenant_id'));
+});
+
+it('stores superadmin tenant context when entering tenant master data', function () {
+    $this->actingAs(createSuperadminForTenantManagement(), 'superadmin');
+
+    $tenant = Tenant::create([
+        'code' => 'MD',
+        'name' => 'Tenant Master Data',
+        'slug' => 'tenant-master-data',
+        'storage_quota_bytes' => 10 * 1024 * 1024 * 1024,
+        'storage_used_bytes' => 0,
+        'storage_warning_threshold_percent' => 80,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(TenantMasterDataEntry::class)
+        ->call('enterMasterData', $tenant->id, 'tag')
+        ->assertRedirect('/tenant-master-data/admin/master-data#tag');
+
+    $this->assertSame($tenant->id, session('superadmin_tenant_id'));
+});
+
+it('stores superadmin tenant context when entering tenant upload links', function () {
+    $this->actingAs(createSuperadminForTenantManagement(), 'superadmin');
+
+    $tenant = Tenant::create([
+        'code' => 'UL',
+        'name' => 'Tenant Upload Link',
+        'slug' => 'tenant-upload-link',
+        'storage_quota_bytes' => 10 * 1024 * 1024 * 1024,
+        'storage_used_bytes' => 0,
+        'storage_warning_threshold_percent' => 80,
+        'is_active' => true,
+    ]);
+
+    Livewire::test(TenantUploadLinkEntry::class)
+        ->call('enterUploadLinks', $tenant->id)
+        ->assertRedirect('/tenant-upload-link/admin/upload-links');
 
     $this->assertSame($tenant->id, session('superadmin_tenant_id'));
 });

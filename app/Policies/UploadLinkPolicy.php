@@ -39,8 +39,6 @@ class UploadLinkPolicy
     public function uploadAsGuest(?AdminUser $user, UploadLink $uploadLink): bool
     {
         return $this->tenantIdMatchesCurrentContext($uploadLink->tenant_id)
-            && $uploadLink->is_active
-            && ($uploadLink->expires_at === null || $uploadLink->expires_at->isFuture())
-            && ($uploadLink->max_usage === null || $uploadLink->usage_count < $uploadLink->max_usage);
+            && $uploadLink->isUsableForGuestUpload();
     }
 }
