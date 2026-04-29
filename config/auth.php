@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\AdminUser;
 use App\Models\User;
+use App\Models\UserAccount;
 
 return [
 
@@ -42,6 +44,21 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'superadmin' => [
+            'driver' => 'session',
+            'provider' => 'admin_users',
+        ],
+
+        'tenant_admin' => [
+            'driver' => 'session',
+            'provider' => 'admin_users',
+        ],
+
+        'user_account' => [
+            'driver' => 'session',
+            'provider' => 'user_accounts',
+        ],
     ],
 
     /*
@@ -65,6 +82,16 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'admin_users' => [
+            'driver' => 'eloquent',
+            'model' => AdminUser::class,
+        ],
+
+        'user_accounts' => [
+            'driver' => 'eloquent',
+            'model' => UserAccount::class,
         ],
 
         // 'users' => [
