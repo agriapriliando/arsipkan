@@ -20,8 +20,9 @@
         ],
         'user' => [
             ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'tenant.user.dashboard', 'params' => $tenantParams],
-            ['label' => 'Berkas Saya', 'icon' => 'folder', 'route' => 'tenant.user.dashboard', 'params' => $tenantParams],
-            ['label' => 'Arsip Tenant', 'icon' => 'archive', 'route' => 'tenant.user.dashboard', 'params' => $tenantParams],
+            ['label' => 'Berkas Saya', 'icon' => 'folder', 'route' => 'tenant.user.files.mine', 'params' => $tenantParams],
+            ['label' => 'Arsip Tenant', 'icon' => 'archive', 'route' => 'tenant.user.files.tenant', 'params' => $tenantParams],
+            ['label' => 'Profil', 'icon' => 'user-round', 'route' => 'tenant.user.profile', 'params' => $tenantParams],
         ],
         default => [
             ['label' => 'Beranda', 'icon' => 'home', 'route' => 'home'],
@@ -66,6 +67,10 @@
             <a href="{{ route('tenant.admin.upload-links.index', $tenantParams) }}" class="nav-link {{ request()->routeIs('tenant.admin.upload-links.*') ? 'active' : '' }}" title="Link Upload">
                 <i data-lucide="link"></i>
                 <span class="sidebar-label">Link Upload</span>
+            </a>
+            <a href="{{ route('tenant.admin.user-accounts.index', $tenantParams) }}" class="nav-link {{ request()->routeIs('tenant.admin.user-accounts.*') ? 'active' : '' }}" title="Akun Uploader">
+                <i data-lucide="user-round-cog"></i>
+                <span class="sidebar-label">Akun Uploader</span>
             </a>
             <a href="{{ route('tenant.admin.master-data.index', $tenantParams) }}#kategori" class="nav-link {{ request()->routeIs('tenant.admin.master-data.*') ? 'active' : '' }}" title="CRUD Kategori">
                 <i data-lucide="folder-tree"></i>

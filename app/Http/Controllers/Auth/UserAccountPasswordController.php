@@ -25,7 +25,12 @@ class UserAccountPasswordController extends Controller
     {
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ], [
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+        ], [
+            'current_password' => 'password saat ini',
+            'password' => 'password baru',
         ]);
 
         $account = Auth::guard('user_account')->user();

@@ -8,6 +8,11 @@
         default => null,
     };
 
+    $userName = match ($variant) {
+        'user' => $user?->guestUploader?->name ?? 'User Uploader',
+        default => $user?->name ?? 'Arsipkan',
+    };
+
     $role = match ($variant) {
         'superadmin' => 'Superadmin',
         'tenant-admin' => auth('superadmin')->check() && ! auth('tenant_admin')->check() ? 'Superadmin' : 'Admin Tenant',
@@ -15,8 +20,8 @@
         default => 'Publik',
     };
 
-    $initials = $user?->name
-        ? collect(explode(' ', $user->name))->take(2)->map(fn ($part) => substr($part, 0, 1))->implode('')
+    $initials = $userName
+        ? collect(explode(' ', $userName))->take(2)->map(fn ($part) => substr($part, 0, 1))->implode('')
         : 'AR';
 @endphp
 
@@ -46,7 +51,7 @@
                 <span class="fw-bold text-primary small">{{ \Illuminate\Support\Str::upper($initials) }}</span>
             </div>
             <div class="d-none d-sm-block">
-                <p class="mb-0 fw-bold small">{{ $user?->name ?? 'Arsipkan' }}</p>
+                <p class="mb-0 fw-bold small">{{ $userName }}</p>
                 <p class="mb-0 text-muted" style="font-size: 0.7rem">{{ $role }}</p>
             </div>
         </div>

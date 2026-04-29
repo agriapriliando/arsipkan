@@ -85,13 +85,14 @@ class UploadLinkManager extends Component
 
         $validated = $this->validatedPayload($tenant);
         $currentUser = $this->currentUser();
+        $resolvedCode = $this->resolvedCode($tenant, $validated['code']);
 
         if ($this->editingUploadLinkId !== null) {
             UploadLink::query()
                 ->forTenant($tenant)
                 ->findOrFail($this->editingUploadLinkId)
                 ->update([
-                    'code' => Str::upper($validated['code']),
+                    'code' => $resolvedCode,
                     'title' => $validated['title'],
                     'is_active' => $validated['is_active'],
                     'expires_at' => $validated['expires_at'],
@@ -100,7 +101,7 @@ class UploadLinkManager extends Component
         } else {
             UploadLink::query()->create([
                 'tenant_id' => $tenant->id,
-                'code' => Str::upper($validated['code']),
+                'code' => $resolvedCode,
                 'title' => $validated['title'],
                 'is_active' => $validated['is_active'],
                 'expires_at' => $validated['expires_at'],
@@ -111,6 +112,7 @@ class UploadLinkManager extends Component
 
         $this->resetForm();
         $this->dispatch('upload-link-saved');
+        $this->dispatch('refresh-lucide-icons');
     }
 
     public function toggleActive(int $uploadLinkId): void
@@ -126,6 +128,8 @@ class UploadLinkManager extends Component
         $uploadLink->forceFill([
             'is_active' => ! $uploadLink->is_active,
         ])->save();
+
+        $this->dispatch('refresh-lucide-icons');
     }
 
     public function delete(int $uploadLinkId): void
@@ -138,6 +142,8 @@ class UploadLinkManager extends Component
 
         $this->authorizeAction('delete', $uploadLink);
         $uploadLink->delete();
+
+        $this->dispatch('refresh-lucide-icons');
     }
 
     public function resetForm(): void
@@ -166,7 +172,7 @@ class UploadLinkManager extends Component
             ],
             [
                 'code' => [
-                    'required',
+                    $this->editingUploadLinkId !== null ? 'required' : 'nullable',
                     'string',
                     'max:100',
                     'alpha_dash',
@@ -185,6 +191,33 @@ class UploadLinkManager extends Component
                 'expires_at' => 'masa berlaku',
             ],
         )->validate();
+    }
+
+    protected function resolvedCode(Tenant $tenant, ?string $code): string
+    {
+        $normalizedCode = trim((string) $code);
+
+        if ($normalizedCode !== '') {
+            return $normalizedCode;
+        }
+
+        return $this->generateUniqueCode($tenant);
+    }
+
+    protected function generateUniqueCode(Tenant $tenant): string
+    {
+        $alphabet = 'abcdefghijklmnopqrstuvwxyz';
+
+        do {
+            $candidate = collect(range(1, 8))
+                ->map(fn () => $alphabet[random_int(0, strlen($alphabet) - 1)])
+                ->implode('');
+        } while (UploadLink::query()
+            ->forTenant($tenant)
+            ->where('code', $candidate)
+            ->exists());
+
+        return $candidate;
     }
 
     protected function authorizeTenantManager(): Tenant

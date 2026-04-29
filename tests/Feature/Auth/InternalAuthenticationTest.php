@@ -71,6 +71,7 @@ it('authenticates tenant admins only for the active tenant', function () {
 
     $this->get('/tenant-admin-a/admin')->assertOk();
     $this->get('/tenant-admin-b/admin')->assertRedirect('/tenant-admin-b/admin/login');
+    $this->get('/tenant-admin-a/admin/login')->assertRedirect('/tenant-admin-a/admin');
 });
 
 it('authenticates user uploaders by normalized phone number and forces password changes', function () {
@@ -101,6 +102,9 @@ it('authenticates user uploaders by normalized phone number and forces password 
     $this->get('/tenant-user-a/dashboard')
         ->assertRedirect('/tenant-user-a/password/change');
 
+    $this->get('/tenant-user-a/login')
+        ->assertRedirect('/tenant-user-a/password/change');
+
     $this->put('/tenant-user-a/password/change', [
         'current_password' => 'secret-password',
         'password' => 'new-secret-password',
@@ -110,6 +114,22 @@ it('authenticates user uploaders by normalized phone number and forces password 
     expect($account->fresh()->must_change_password)->toBeFalse();
 
     $this->get('/tenant-user-a/dashboard')->assertOk();
+    $this->get('/tenant-user-a/login')->assertRedirect('/tenant-user-a/dashboard');
+});
+
+it('redirects authenticated superadmins away from the login form to their dashboard', function () {
+    $superadmin = AdminUser::create([
+        'tenant_id' => null,
+        'name' => 'Superadmin',
+        'email' => 'superadmin-redirect@test.local',
+        'password' => Hash::make('secret-password'),
+        'role' => AdminUser::ROLE_SUPERADMIN,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($superadmin, 'superadmin')
+        ->get('/superadmin/login')
+        ->assertRedirect('/superadmin');
 });
 
 it('resets a superadmin password through artisan only for superadmin accounts', function () {

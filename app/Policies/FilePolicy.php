@@ -38,7 +38,7 @@ class FilePolicy
             return true;
         }
 
-        return $file->visibility === File::VISIBILITY_INTERNAL
+        return in_array($file->visibility, [File::VISIBILITY_INTERNAL, File::VISIBILITY_PUBLIC], true)
             && $file->status === File::STATUS_VALID
             && $file->deleted_at === null;
     }
@@ -73,6 +73,11 @@ class FilePolicy
             && $this->tenantIdMatchesCurrentContext($file->tenant_id)
             && (int) $user->tenant_id === (int) $file->tenant_id
             && (int) $user->guest_uploader_id === (int) $file->guest_uploader_id;
+    }
+
+    public function changeVisibility(AdminUser|UserAccount $user, File $file): bool
+    {
+        return $this->delete($user, $file) && $file->deleted_at === null;
     }
 
     public function restore(AdminUser|UserAccount $user, File $file): bool

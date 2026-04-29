@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\SuperadminAuthController;
 use App\Http\Controllers\Auth\TenantAdminAuthController;
 use App\Http\Controllers\Auth\UserAccountAuthController;
 use App\Http\Controllers\Auth\UserAccountPasswordController;
+use App\Http\Controllers\Tenant\UserPortalController;
 use App\Services\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,7 +54,14 @@ Route::prefix('{tenant_slug}')
         });
 
         Route::middleware(['auth.user_account', 'user.password.changed'])->group(function (): void {
-            Route::view('/dashboard', 'tenant.user.dashboard')->name('user.dashboard');
+            Route::get('/dashboard', [UserPortalController::class, 'dashboard'])->name('user.dashboard');
+            Route::get('/my-files', [UserPortalController::class, 'myFiles'])->name('user.files.mine');
+            Route::get('/tenant-files', [UserPortalController::class, 'tenantFiles'])->name('user.files.tenant');
+            Route::get('/files/{file}', [UserPortalController::class, 'show'])->name('user.files.show');
+            Route::get('/files/{file}/download', [UserPortalController::class, 'download'])->name('user.files.download');
+            Route::patch('/files/{file}/visibility', [UserPortalController::class, 'updateVisibility'])->name('user.files.visibility');
+            Route::get('/profile', [UserPortalController::class, 'profile'])->name('user.profile');
+            Route::delete('/files/{file}', [UserPortalController::class, 'destroy'])->name('user.files.destroy');
             Route::post('/logout', [UserAccountAuthController::class, 'destroy'])->name('logout');
         });
 
@@ -73,6 +81,7 @@ Route::prefix('{tenant_slug}')
                 Route::middleware('auth.tenant_manager')->group(function (): void {
                     Route::view('/master-data', 'tenant.admin.master-data.index')->name('master-data.index');
                     Route::view('/upload-links', 'tenant.admin.upload-links.index')->name('upload-links.index');
+                    Route::view('/user-accounts', 'tenant.admin.user-accounts.index')->name('user-accounts.index');
                 });
 
                 Route::middleware('auth.tenant_admin')->group(function (): void {

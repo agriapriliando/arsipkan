@@ -58,6 +58,13 @@ function setUploadLinkTenant(Tenant $tenant): void
 it('protects the tenant upload link page for tenant managers', function () {
     $tenant = createTenantForUploadLinks();
     $admin = createTenantAdminForUploadLinks($tenant);
+    $uploadLink = UploadLink::create([
+        'tenant_id' => $tenant->id,
+        'code' => 'COPY-ME',
+        'title' => 'Copy Me',
+        'is_active' => true,
+        'created_by_admin_id' => $admin->id,
+    ]);
 
     $this->get('/upload-link-a/admin/upload-links')
         ->assertRedirect('/upload-link-a/admin/login');
@@ -65,7 +72,8 @@ it('protects the tenant upload link page for tenant managers', function () {
     $this->actingAs($admin, 'tenant_admin')
         ->get('/upload-link-a/admin/upload-links')
         ->assertOk()
-        ->assertSee('Manajemen Link Upload');
+        ->assertSee('Manajemen Link Upload')
+        ->assertSee(route('tenant.upload.show', ['tenant_slug' => $tenant->slug, 'code' => $uploadLink->code]), false);
 });
 
 it('allows superadmins to access upload links only in the entered tenant context', function () {
@@ -106,6 +114,26 @@ it('creates upload links inside the active tenant only', function () {
         ->and($uploadLink->max_usage)->toBe(10)
         ->and($uploadLink->usage_count)->toBe(0)
         ->and($uploadLink->created_by_admin_id)->toBe($admin->id);
+});
+
+it('generates a random lowercase code when none is provided', function () {
+    $tenant = createTenantForUploadLinks();
+    $admin = createTenantAdminForUploadLinks($tenant);
+
+    setUploadLinkTenant($tenant);
+    $this->actingAs($admin, 'tenant_admin');
+
+    Livewire::test(UploadLinkManager::class)
+        ->set('code', '')
+        ->set('title', 'Upload Tanpa Kode')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $uploadLink = UploadLink::query()->where('title', 'Upload Tanpa Kode')->firstOrFail();
+
+    expect($uploadLink->code)
+        ->toMatch('/^[a-z]{8}$/')
+        ->and($uploadLink->tenant_id)->toBe($tenant->id);
 });
 
 it('keeps tenant context when livewire upload link actions run on later requests', function () {

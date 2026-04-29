@@ -30,16 +30,33 @@
                     @enderror
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-3" x-data="{ showPassword: false }">
                     <label for="password" class="form-label small fw-bold text-secondary">Password</label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        class="form-control @error('password') is-invalid @enderror"
-                        placeholder="Masukkan password"
-                        required
-                    >
+                    <div class="input-group">
+                        <input
+                            id="password"
+                            name="password"
+                            x-bind:type="showPassword ? 'text' : 'password'"
+                            class="form-control @error('password') is-invalid @enderror"
+                            placeholder="Masukkan password"
+                            required
+                        >
+                        <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            x-on:click="showPassword = !showPassword"
+                            x-bind:aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                            x-bind:aria-pressed="showPassword ? 'true' : 'false'"
+                            x-bind:title="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
+                        >
+                            <span x-show="!showPassword" x-cloak>
+                                <i data-lucide="eye" style="width: 18px; height: 18px"></i>
+                            </span>
+                            <span x-show="showPassword" x-cloak>
+                                <i data-lucide="eye-off" style="width: 18px; height: 18px"></i>
+                            </span>
+                        </button>
+                    </div>
                     @error('password')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

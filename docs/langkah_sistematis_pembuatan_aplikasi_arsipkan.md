@@ -360,7 +360,7 @@ Hasil tahap ini:
    - daftar berkas saya
    - daftar berkas tenant
    - detail berkas
-   - upload berkas
+   - upload berkas memakai link dari admin tenant
    - profil / ubah password
 3. Aturan tampilan:
    - daftar berkas saya menampilkan file miliknya sendiri

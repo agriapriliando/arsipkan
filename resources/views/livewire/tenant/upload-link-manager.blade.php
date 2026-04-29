@@ -1,4 +1,16 @@
-<div>
+<div
+    x-data="{
+        refreshIcons() {
+            this.$nextTick(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            });
+        }
+    }"
+    x-init="refreshIcons()"
+    x-on:refresh-lucide-icons.window="refreshIcons()"
+>
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
             <span class="eyebrow mb-3">Link Upload</span>
@@ -17,7 +29,10 @@
                 <form wire:submit="save">
                     <div class="mb-3">
                         <label for="code" class="form-label small fw-bold text-secondary">Kode</label>
-                        <input id="code" type="text" class="form-control @error('code') is-invalid @enderror" wire:model="code" placeholder="UPLOAD-A">
+                        <input id="code" type="text" class="form-control @error('code') is-invalid @enderror" wire:model="code" placeholder="misalnya upload-a">
+                        @if(! $editingUploadLinkId)
+                            <div class="form-text">Kosongkan jika ingin dibuat otomatis dengan huruf kecil acak.</div>
+                        @endif
                         @error('code')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -99,14 +114,18 @@
                                             {{ $uploadLink->isUsableForGuestUpload() ? 'Siap dipakai' : 'Tidak tersedia' }}
                                         </span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end" x-data="{ copied: false, async copyLink(url) { try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url); } else { const input = document.createElement('input'); input.value = url; document.body.appendChild(input); input.select(); document.execCommand('copy'); input.remove(); } this.copied = true; setTimeout(() => this.copied = false, 2000); } catch (error) { window.prompt('Salin link ini:', url); } } }">
                                         <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-light border fw-semibold" data-copy-url="{{ route('tenant.upload.show', ['tenant_slug' => $uploadLink->tenant->slug, 'code' => $uploadLink->code]) }}" x-on:click="copyLink($el.dataset.copyUrl)" x-bind:title="copied ? 'Link tersalin' : 'Copy link'" x-bind:aria-label="copied ? 'Link tersalin' : 'Copy link'">
+                                                <i data-lucide="copy" style="width: 16px; height: 16px"></i>
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-light border fw-semibold" wire:click="edit({{ $uploadLink->id }})">Edit</button>
                                             <button type="button" class="btn btn-sm btn-light border fw-semibold" wire:click="toggleActive({{ $uploadLink->id }})">
                                                 {{ $uploadLink->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger fw-semibold" wire:click="delete({{ $uploadLink->id }})" wire:confirm="Hapus link upload ini?">Hapus</button>
                                         </div>
+                                        <div class="small text-success mt-1" x-show="copied">Link tersalin</div>
                                     </td>
                                 </tr>
                             @empty

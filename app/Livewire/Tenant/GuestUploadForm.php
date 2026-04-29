@@ -34,6 +34,8 @@ class GuestUploadForm extends Component
 
     public ?TemporaryUploadedFile $uploadedFile = null;
 
+    public string $uploadedFileName = '';
+
     public ?string $successMessage = null;
 
     public function mount(string $code): void
@@ -48,6 +50,8 @@ class GuestUploadForm extends Component
             ->firstOrFail();
 
         abort_unless(Gate::forUser(null)->allows('uploadAsGuest', $this->uploadLink), 404);
+
+        $this->hydrateUploaderIdentity($tenant);
     }
 
     public function render(): View
@@ -63,8 +67,7 @@ class GuestUploadForm extends Component
         abort_unless(Gate::forUser(null)->allows('uploadAsGuest', $this->uploadLink), 404);
 
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phoneNumber' => ['required', 'string', 'max:30'],
+            ...$this->identityRules(),
             'visibility' => [
                 'required',
                 Rule::in([
@@ -75,7 +78,7 @@ class GuestUploadForm extends Component
             ],
             'uploadedFile' => ['required', 'file', 'max:102400'],
         ], [], [
-            'phoneNumber' => 'nomor HP',
+            ...$this->identityAttributes(),
             'uploadedFile' => 'file',
         ]);
 
@@ -150,11 +153,37 @@ class GuestUploadForm extends Component
         }
 
         Cookie::queue($this->guestTokenCookieName($tenant), $guestToken, 60 * 24 * 365);
+        $this->queueUploaderIdentityCookie($tenant, $validated['name'], $validated['phoneNumber']);
 
-        $this->reset(['name', 'phoneNumber', 'uploadedFile']);
-        $this->visibility = ArchivedFile::VISIBILITY_PRIVATE;
+        $this->reset(['uploadedFile', 'uploadedFileName']);
         $this->successMessage = 'File berhasil diunggah.';
         $this->uploadLink->refresh();
+    }
+
+    public function updatedUploadedFile(): void
+    {
+        $this->uploadedFileName = $this->uploadedFile?->getClientOriginalName() ?? '';
+    }
+
+    public function clearUploadedFile(): void
+    {
+        $this->reset(['uploadedFile', 'uploadedFileName']);
+        $this->resetErrorBag('uploadedFile');
+    }
+
+    public function updatedName(): void
+    {
+        $this->persistUploaderIdentity();
+    }
+
+    public function updatedPhoneNumber(): void
+    {
+        $this->persistUploaderIdentity();
+    }
+
+    public function updatedVisibility(): void
+    {
+        $this->persistUploaderIdentity();
     }
 
     protected function currentTenant(): Tenant
@@ -197,5 +226,82 @@ class GuestUploadForm extends Component
     protected function guestTokenCookieName(Tenant $tenant): string
     {
         return 'arsipkan_guest_token_'.$tenant->id;
+    }
+
+    protected function uploaderIdentityCookieName(Tenant $tenant): string
+    {
+        return 'arsipkan_guest_identity_'.$tenant->id;
+    }
+
+    protected function queueUploaderIdentityCookie(Tenant $tenant, string $name, string $phoneNumber): void
+    {
+        Cookie::queue(
+            $this->uploaderIdentityCookieName($tenant),
+            json_encode([
+                'name' => $name,
+                'phoneNumber' => $phoneNumber,
+                'visibility' => $this->visibility,
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            60 * 24 * 365,
+        );
+    }
+
+    protected function hydrateUploaderIdentity(Tenant $tenant): void
+    {
+        $identity = json_decode((string) request()->cookie($this->uploaderIdentityCookieName($tenant)), true);
+
+        if (
+            is_array($identity)
+        ) {
+            $this->name = is_string($identity['name'] ?? null) ? $identity['name'] : '';
+            $this->phoneNumber = is_string($identity['phoneNumber'] ?? null) ? $identity['phoneNumber'] : '';
+            $this->visibility = in_array($identity['visibility'] ?? null, [
+                ArchivedFile::VISIBILITY_PUBLIC,
+                ArchivedFile::VISIBILITY_INTERNAL,
+                ArchivedFile::VISIBILITY_PRIVATE,
+            ], true)
+                ? (string) $identity['visibility']
+                : ArchivedFile::VISIBILITY_PRIVATE;
+
+            return;
+        }
+
+        $guestToken = request()->cookie($this->guestTokenCookieName($tenant));
+
+        if (! is_string($guestToken) || $guestToken === '') {
+            return;
+        }
+
+        $guestUploader = GuestUploader::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('guest_token', $guestToken)
+            ->first();
+
+        if ($guestUploader instanceof GuestUploader) {
+            $this->name = $guestUploader->name;
+            $this->phoneNumber = $guestUploader->phone_number;
+        }
+    }
+
+    protected function identityRules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'phoneNumber' => ['required', 'string', 'max:30'],
+        ];
+    }
+
+    protected function identityAttributes(): array
+    {
+        return [
+            'phoneNumber' => 'nomor HP',
+        ];
+    }
+
+    protected function persistUploaderIdentity(): void
+    {
+        $tenant = $this->currentTenant();
+
+        $this->queueUploaderIdentityCookie($tenant, $this->name, $this->phoneNumber);
     }
 }

@@ -12,7 +12,12 @@
             $layoutVariant = $layoutVariant ?? match (true) {
                 request()->is('superadmin*') && ! request()->is('superadmin/login') => 'superadmin',
                 request()->is('*/admin*') && ! request()->is('*/admin/login') => 'tenant-admin',
-                request()->is('*/dashboard') || request()->is('*/password/*') => 'user',
+                request()->is('*/dashboard')
+                    || request()->is('*/password/*')
+                    || request()->is('*/my-files*')
+                    || request()->is('*/tenant-files*')
+                    || request()->is('*/files/*')
+                    || request()->is('*/profile') => 'user',
                 default => 'guest',
             };
             $withSidebar = $layoutVariant !== 'guest';

@@ -8,6 +8,7 @@ use App\Models\UploadLink;
 use App\Services\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -113,6 +114,18 @@ it('stores guest uploads on private storage and creates file records', function 
     Storage::disk('local')->assertExists($file->stored_name);
 });
 
+it('tracks the selected file name for the upload form', function () {
+    Storage::fake('local');
+
+    $tenant = createTenantForGuestUpload();
+    createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('uploadedFile', UploadedFile::fake()->create('nama-muncul.pdf', 20, 'application/pdf'))
+        ->assertSet('uploadedFileName', 'nama-muncul.pdf');
+});
+
 it('sets internal and private guest uploads as valid immediately', function (string $visibility) {
     Storage::fake('local');
 
@@ -163,6 +176,49 @@ it('reuses guest uploaders by normalized phone number and updates the browser to
     expect(GuestUploader::query()->count())->toBe(1)
         ->and($guestUploader->refresh()->name)->toBe('Nama Baru')
         ->and($guestUploader->guest_token)->toBe('browser-token');
+});
+
+it('prefills uploader identity from a saved cookie across upload codes in the same tenant', function () {
+    $tenant = createTenantForGuestUpload();
+    createUploadLinkForGuestUpload($tenant, [
+        'code' => 'UPLOAD-A',
+        'title' => 'Upload A',
+    ]);
+    createUploadLinkForGuestUpload($tenant, [
+        'code' => 'UPLOAD-B',
+        'title' => 'Upload B',
+    ]);
+    setGuestUploadTenant($tenant);
+
+    Livewire::withCookie('arsipkan_guest_identity_'.$tenant->id, json_encode([
+        'name' => 'Budi Tersimpan',
+        'phoneNumber' => '08123456789',
+        'visibility' => File::VISIBILITY_PUBLIC,
+    ]))
+        ->test(GuestUploadForm::class, ['code' => 'UPLOAD-B'])
+        ->assertSet('name', 'Budi Tersimpan')
+        ->assertSet('phoneNumber', '08123456789')
+        ->assertSet('visibility', File::VISIBILITY_PUBLIC);
+});
+
+it('stores uploader identity automatically when the form values change', function () {
+    $tenant = createTenantForGuestUpload();
+    createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('name', 'Budi Simpan')
+        ->set('phoneNumber', '0812 3456 789')
+        ->set('visibility', File::VISIBILITY_PRIVATE);
+
+    $cookie = Cookie::queued('arsipkan_guest_identity_'.$tenant->id);
+
+    expect($cookie)->not->toBeNull()
+        ->and(json_decode(urldecode($cookie->getValue()), true))->toMatchArray([
+            'name' => 'Budi Simpan',
+            'phoneNumber' => '0812 3456 789',
+            'visibility' => File::VISIBILITY_PRIVATE,
+        ]);
 });
 
 it('rejects uploads that exceed tenant storage quota', function () {

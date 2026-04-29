@@ -1,71 +1,118 @@
-<div>
-    <section class="hero-card p-4 p-lg-5 mb-4">
-        <div class="row g-4 align-items-center">
-            <div class="col-12 col-lg-8">
-                <span class="eyebrow mb-3">Upload Guest</span>
-                <h1 class="display-6 fw-bold mb-3">{{ $uploadLink->title }}</h1>
-                <p class="text-secondary fs-5 mb-0">Unggah file ke {{ $currentTenant->name ?? 'tenant aktif' }} tanpa login.</p>
-            </div>
+<div
+    x-data="{
+        selectedVisibility: @entangle('visibility'),
+        isDragOver: false,
+        refreshIcons() {
+            this.$nextTick(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            });
+        },
+        handleDrop(event) {
+            const files = event.dataTransfer?.files;
 
-            <div class="col-12 col-lg-4">
-                <div class="info-card p-4">
-                    <div class="muted-label mb-2">Kode Link</div>
-                    <div class="fs-4 fw-bold mb-2">{{ $uploadLink->code }}</div>
-                    <div class="text-secondary">Terpakai {{ $uploadLink->usage_count }} / {{ $uploadLink->max_usage ?? 'tanpa batas' }}</div>
-                </div>
-            </div>
+            this.isDragOver = false;
+
+            if (!files?.length) {
+                return;
+            }
+
+            this.$refs.fileInput.files = files;
+            this.$refs.fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            this.refreshIcons();
+        }
+    }"
+    x-init="refreshIcons()"
+    x-on:livewire-upload-finish.window="refreshIcons()"
+    x-on:livewire-upload-error.window="refreshIcons()"
+>
+    <div class="upload-container">
+        <div class="logo-box">
+            <i data-lucide="file-up"></i>
         </div>
-    </section>
+        <h3 class="text-center fw-bold mb-1">{{ $uploadLink->title }}</h3>
+        <p class="text-center text-muted small mb-1">Silakan isi identitas dan pilih berkas Anda.</p>
 
-    <section class="panel-box p-4">
         @if($successMessage)
             <div class="alert alert-success">{{ $successMessage }}</div>
         @endif
 
         <form wire:submit="submit">
-            <div class="row g-3">
-                <div class="col-12 col-lg-6">
-                    <label for="name" class="form-label small fw-bold text-secondary">Nama</label>
-                    <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" wire:model="name" placeholder="Nama pengunggah">
-                    @error('name')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-12 col-lg-6">
-                    <label for="phoneNumber" class="form-label small fw-bold text-secondary">Nomor HP</label>
-                    <input id="phoneNumber" type="text" class="form-control @error('phoneNumber') is-invalid @enderror" wire:model="phoneNumber" placeholder="08123456789">
-                    @error('phoneNumber')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-12 col-lg-6">
-                    <label for="visibility" class="form-label small fw-bold text-secondary">Visibilitas</label>
-                    <select id="visibility" class="form-select form-control @error('visibility') is-invalid @enderror" wire:model="visibility">
-                        <option value="private">Private</option>
-                        <option value="internal">Internal</option>
-                        <option value="public">Publik</option>
-                    </select>
-                    @error('visibility')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="col-12 col-lg-6">
-                    <label for="uploadedFile" class="form-label small fw-bold text-secondary">File</label>
-                    <input id="uploadedFile" type="file" class="form-control @error('uploadedFile') is-invalid @enderror" wire:model="uploadedFile">
-                    @error('uploadedFile')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Nama Lengkap</label>
+                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" wire:model.live.debounce.400ms="name" placeholder="Masukkan nama Anda" required>
+                @error('name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
-            <div class="d-flex justify-content-end mt-4">
-                <button type="submit" class="btn btn-brand" wire:loading.attr="disabled">
-                    Unggah File
+            <div class="mb-3">
+                <label for="phoneNumber" class="form-label">Nomor HP (WhatsApp)</label>
+                <input id="phoneNumber" type="tel" class="form-control @error('phoneNumber') is-invalid @enderror" wire:model.live.debounce.400ms="phoneNumber" placeholder="Contoh: 08123456789" required>
+                @error('phoneNumber')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Visibilitas Berkas</label>
+                <div class="visibility-option">
+                    <label class="vis-card" x-bind:class="{ 'active': selectedVisibility === 'public' }">
+                        <input type="radio" wire:model.live="visibility" value="public">
+                        <span>Publik</span>
+                    </label>
+                    <label class="vis-card" x-bind:class="{ 'active': selectedVisibility === 'private' }">
+                        <input type="radio" wire:model.live="visibility" value="private">
+                        <span>Privat</span>
+                    </label>
+                    <label class="vis-card" x-bind:class="{ 'active': selectedVisibility === 'internal' }">
+                        <input type="radio" wire:model.live="visibility" value="internal">
+                        <span>Internal</span>
+                    </label>
+                </div>
+                <p class="text-muted mt-2 mb-0" style="font-size: 0.75rem">Berkas publik menunggu moderasi admin. Berkas privat dan internal langsung aktif.</p>
+                @error('visibility')
+                    <div class="text-danger small mt-2">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div
+                class="drop-zone"
+                x-bind:class="{ 'dragover': isDragOver }"
+                x-show="@js($uploadedFileName === '')"
+                x-on:click="$refs.fileInput.click()"
+                x-on:dragover.prevent="isDragOver = true"
+                x-on:dragleave.prevent="isDragOver = false"
+                x-on:drop.prevent="handleDrop($event)"
+            >
+                <i data-lucide="cloud-upload" class="text-muted mb-2" style="width: 32px; height: 32px"></i>
+                <p class="mb-0 text-muted small fw-medium">Klik atau seret file ke sini</p>
+                <p class="text-muted" style="font-size: 0.7rem">Maksimal 100MB</p>
+            </div>
+
+            <input
+                id="fileInput"
+                x-ref="fileInput"
+                type="file"
+                wire:model="uploadedFile"
+            >
+
+            <div class="file-info" @style(['display: flex' => $uploadedFileName !== ''])>
+                <i data-lucide="file" class="text-primary" style="width: 20px"></i>
+                <span class="text-truncate flex-grow-1">{{ $uploadedFileName }}</span>
+                <button type="button" class="btn btn-sm p-0 text-danger" wire:click="clearUploadedFile">
+                    <i data-lucide="x" style="width: 18px"></i>
                 </button>
             </div>
+            @error('uploadedFile')
+                <div class="text-danger small mt-2">{{ $message }}</div>
+            @enderror
+
+            <button type="submit" class="btn-upload" wire:loading.attr="disabled">
+                <span wire:loading.remove wire:target="submit,uploadedFile">Unggah File</span>
+                <span wire:loading wire:target="submit,uploadedFile">Mengunggah...</span>
+            </button>
         </form>
-    </section>
+    </div>
 </div>

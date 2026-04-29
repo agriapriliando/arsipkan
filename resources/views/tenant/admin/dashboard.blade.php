@@ -8,6 +8,7 @@
 
         <div class="d-flex flex-wrap gap-2 mt-4">
             <a href="{{ route('tenant.admin.upload-links.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-brand">Link Upload</a>
+            <a href="{{ route('tenant.admin.user-accounts.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Akun Uploader</a>
             <a href="{{ route('tenant.admin.master-data.index', ['tenant_slug' => request()->route('tenant_slug')]) }}#kategori" class="btn btn-brand">CRUD Kategori</a>
             <a href="{{ route('tenant.admin.master-data.index', ['tenant_slug' => request()->route('tenant_slug')]) }}#tag" class="btn btn-outline-brand">CRUD Tag</a>
         </div>
