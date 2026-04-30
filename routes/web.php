@@ -36,6 +36,7 @@ Route::prefix('{tenant_slug}')
     ->name('tenant.')
     ->group(function (): void {
         Route::get('/', [TenantPublicCatalogController::class, 'index'])->name('home');
+        Route::get('/leaderboard', [TenantPublicCatalogController::class, 'leaderboard'])->name('leaderboard');
         Route::get('/catalog/{file}', [TenantPublicCatalogController::class, 'show'])->name('catalog.show');
         Route::get('/catalog/{file}/download', [TenantPublicCatalogController::class, 'download'])->name('catalog.download');
 

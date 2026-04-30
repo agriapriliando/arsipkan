@@ -9,10 +9,12 @@ use App\Models\Tag;
 use App\Models\Tenant;
 use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TenantPublicCatalogController extends Controller
@@ -20,16 +22,22 @@ class TenantPublicCatalogController extends Controller
     public function index(Request $request, TenantContext $tenantContext): View
     {
         $tenant = $this->currentTenant($tenantContext);
+        $perPageOptions = [8, 12, 24, 48];
 
         $filters = [
             'search' => trim((string) $request->string('search')),
             'category_id' => $request->integer('category_id') ?: null,
             'tag_id' => $request->integer('tag_id') ?: null,
             'file_type' => trim((string) $request->string('file_type')),
+            'per_page' => $request->integer('per_page') ?: 12,
         ];
 
+        if (! in_array($filters['per_page'], $perPageOptions, true)) {
+            $filters['per_page'] = 12;
+        }
+
         $query = File::query()
-            ->with(['category', 'tags'])
+            ->with(['category', 'tags', 'guestUploader'])
             ->where('tenant_id', $tenant->id)
             ->where('visibility', File::VISIBILITY_PUBLIC)
             ->where('status', File::STATUS_VALID);
@@ -75,8 +83,9 @@ class TenantPublicCatalogController extends Controller
             'filters' => $filters,
             'files' => $query
                 ->latest('uploaded_at')
-                ->paginate(12)
+                ->paginate($filters['per_page'])
                 ->withQueryString(),
+            'perPageOptions' => $perPageOptions,
             'categories' => Category::query()
                 ->where('tenant_id', $tenant->id)
                 ->where('is_active', true)
@@ -115,7 +124,51 @@ class TenantPublicCatalogController extends Controller
         ]);
     }
 
-    public function download(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file, ScoreService $scoreService): StreamedResponse
+    public function leaderboard(Request $request, TenantContext $tenantContext, ScoreService $scoreService): View
+    {
+        $tenant = $this->currentTenant($tenantContext);
+        $period = $request->string('period')->value();
+        $selectedPeriod = in_array($period, ['weekly', 'monthly'], true) ? $period : 'monthly';
+
+        [$start, $end, $heading] = match ($selectedPeriod) {
+            'weekly' => [
+                CarbonImmutable::now()->startOfWeek(),
+                CarbonImmutable::now()->endOfWeek(),
+                'minggu ini',
+            ],
+            default => [
+                CarbonImmutable::now()->startOfMonth(),
+                CarbonImmutable::now()->endOfMonth(),
+                CarbonImmutable::now()->translatedFormat('F Y'),
+            ],
+        };
+
+        $leaderboard = $scoreService->leaderboardForTenant($tenant, $start, $end, 25)
+            ->map(function ($uploader) {
+                $uploader->total_upload_count = File::query()
+                    ->where('tenant_id', $uploader->tenant_id)
+                    ->where('guest_uploader_id', $uploader->id)
+                    ->count();
+
+                return $uploader;
+            })
+            ->values();
+        $podium = collect([
+            2 => $leaderboard->get(1),
+            1 => $leaderboard->get(0),
+            3 => $leaderboard->get(2),
+        ]);
+
+        return view('tenant.catalog.leaderboard', [
+            'tenant' => $tenant,
+            'selectedPeriod' => $selectedPeriod,
+            'periodHeading' => $heading,
+            'leaderboard' => $leaderboard,
+            'podium' => $podium,
+        ]);
+    }
+
+    public function download(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file, ScoreService $scoreService): StreamedResponse|BinaryFileResponse
     {
         $tenant = $this->currentTenant($tenantContext);
 
@@ -128,18 +181,24 @@ class TenantPublicCatalogController extends Controller
 
         $headers = [
             'Content-Type' => $file->mime_type ?: 'application/octet-stream',
+            'Cache-Control' => 'private, max-age=300, must-revalidate',
+            'X-Content-Type-Options' => 'nosniff',
         ];
 
         if ($this->isPdf($file)) {
-            return response()->stream(
-                static function () use ($file): void {
-                    echo Storage::disk('local')->get($file->stored_name);
-                },
-                200,
+            $response = response()->file(
+                Storage::disk('local')->path($file->stored_name),
                 $headers + [
                     'Content-Disposition' => 'inline; filename="'.$file->original_name.'"',
+                    'Content-Length' => (string) Storage::disk('local')->size($file->stored_name),
+                    'Accept-Ranges' => 'bytes',
                 ],
             );
+
+            $response->setAutoEtag();
+            $response->setAutoLastModified();
+
+            return $response;
         }
 
         return response()->streamDownload(

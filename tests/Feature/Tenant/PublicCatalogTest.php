@@ -80,10 +80,35 @@ it('shows only valid public files on the tenant public catalog home page', funct
         ->assertOk()
         ->assertSee('Tenant katalog-a')
         ->assertSee('Laporan Publik')
+        ->assertSee('12/hal')
+        ->assertSee('Menampilkan 1-1 dari 1 berkas')
         ->assertDontSee('laporan-publik.pdf')
         ->assertDontSee('Ringkasan detail yang hanya boleh muncul di halaman detail.')
         ->assertDontSee('internal.pdf')
         ->assertDontSee('pending.pdf');
+});
+
+it('supports per page filtering and keeps pagination visible for a single page', function () {
+    $tenant = createTenantForPublicCatalog();
+    $uploader = createGuestUploaderForPublicCatalog($tenant);
+
+    foreach (range(1, 9) as $number) {
+        createFileForPublicCatalog($tenant, $uploader, [
+            'original_name' => 'arsip-'.$number.'.pdf',
+            'title' => 'Arsip '.$number,
+        ]);
+    }
+
+    $this->get('/katalog-a?per_page=8')
+        ->assertOk()
+        ->assertSee('8/hal')
+        ->assertSee('Menampilkan 1-8 dari 9 berkas')
+        ->assertSee('per_page=8&amp;page=2', false);
+
+    $this->get('/katalog-a?per_page=48')
+        ->assertOk()
+        ->assertSee('48/hal')
+        ->assertSee('Menampilkan 1-9 dari 9 berkas');
 });
 
 it('filters and searches the tenant public catalog by category tag and file type', function () {
@@ -244,4 +269,47 @@ it('renders pdf files inline and non pdf files as downloadable attachments', fun
         ->assertOk()
         ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
         ->assertHeader('content-disposition', 'attachment; filename=download-file.docx');
+});
+
+it('shows a public tenant leaderboard page', function () {
+    $tenant = createTenantForPublicCatalog();
+    $budi = createGuestUploaderForPublicCatalog($tenant, '081200000001', 'Budi Santoso');
+    $siti = createGuestUploaderForPublicCatalog($tenant, '081200000002', 'Siti Aminah');
+    $agus = createGuestUploaderForPublicCatalog($tenant, '081200000003', 'Agus Salim');
+
+    foreach (range(1, 5) as $number) {
+        createFileForPublicCatalog($tenant, $budi, [
+            'title' => 'Budi '.$number,
+            'status' => File::STATUS_VALID,
+            'uploaded_at' => now()->subDays(2),
+        ]);
+    }
+
+    foreach (range(1, 3) as $number) {
+        createFileForPublicCatalog($tenant, $siti, [
+            'title' => 'Siti '.$number,
+            'status' => File::STATUS_VALID,
+            'uploaded_at' => now()->subDays(2),
+        ]);
+    }
+
+    createFileForPublicCatalog($tenant, $agus, [
+        'title' => 'Agus 1',
+        'status' => File::STATUS_VALID,
+        'uploaded_at' => now()->subDays(2),
+    ]);
+
+    $this->get('/katalog-a/leaderboard')
+        ->assertOk()
+        ->assertSee('Peringkat Pengunggah')
+        ->assertSee('Budi Santoso')
+        ->assertSee('Siti Aminah')
+        ->assertSee('Agus Salim')
+        ->assertSee('Bulanan')
+        ->assertSee('Mingguan');
+
+    $this->get('/katalog-a/leaderboard?period=weekly')
+        ->assertOk()
+        ->assertSee('Peringkat Pengunggah')
+        ->assertSee('Budi Santoso');
 });
