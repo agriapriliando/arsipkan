@@ -14,9 +14,10 @@
         ],
         'tenant-admin' => [
             ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'tenant.admin.dashboard', 'params' => $tenantParams],
-            ['label' => 'Pending Review', 'icon' => 'file-clock', 'route' => 'tenant.admin.dashboard', 'params' => $tenantParams],
-            ['label' => 'Semua Berkas', 'icon' => 'file-check', 'route' => 'tenant.admin.dashboard', 'params' => $tenantParams],
-            ['label' => 'Uploader', 'icon' => 'users', 'route' => 'tenant.admin.dashboard', 'params' => $tenantParams],
+            ['label' => 'Pending Review', 'icon' => 'file-clock', 'route' => 'tenant.admin.files.pending', 'params' => $tenantParams],
+            ['label' => 'Semua Berkas', 'icon' => 'file-check', 'route' => 'tenant.admin.files.index', 'params' => $tenantParams],
+            ['label' => 'Berkas Terhapus', 'icon' => 'trash-2', 'route' => 'tenant.admin.files.deleted', 'params' => $tenantParams],
+            ['label' => 'Uploader', 'icon' => 'users', 'route' => 'tenant.admin.user-accounts.index', 'params' => $tenantParams],
         ],
         'user' => [
             ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => 'tenant.user.dashboard', 'params' => $tenantParams],

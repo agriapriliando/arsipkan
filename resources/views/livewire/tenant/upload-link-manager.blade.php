@@ -106,7 +106,7 @@
                                             {{ $uploadLink->usage_count }} / {{ $uploadLink->max_usage ?? 'tanpa batas' }}
                                         </div>
                                         <div class="text-secondary small">
-                                            Berlaku sampai {{ $uploadLink->expires_at?->format('d M Y H:i') ?? 'tanpa batas waktu' }}
+                                            Berlaku sampai {{ $uploadLink->expires_at?->translatedFormat('d M Y H:i') ?? 'tanpa batas waktu' }}
                                         </div>
                                     </td>
                                     <td>

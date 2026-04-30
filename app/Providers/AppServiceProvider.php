@@ -13,7 +13,9 @@ use App\Policies\TagPolicy;
 use App\Policies\UploadLinkPolicy;
 use App\Policies\UserAccountPolicy;
 use App\Services\Tenancy\TenantContext;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -53,7 +55,11 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureDefaults(): void
     {
+        app()->setLocale(config('app.locale'));
+        Carbon::setLocale(config('app.locale'));
+        CarbonImmutable::setLocale(config('app.locale'));
         Date::use(CarbonImmutable::class);
+        Paginator::useBootstrapFive();
 
         DB::prohibitDestructiveCommands(
             app()->isProduction(),

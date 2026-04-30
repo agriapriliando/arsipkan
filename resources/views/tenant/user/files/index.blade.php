@@ -55,7 +55,7 @@
                                     <div class="fw-semibold text-capitalize">{{ $file->visibility }}</div>
                                 @endif
                                 <div class="text-secondary small">
-                                    {{ $file->category?->name ?? 'Tanpa kategori' }} | {{ $file->uploaded_at?->format('d M Y H:i') ?? '-' }}
+                                    {{ $file->category?->name ?? 'Tanpa kategori' }} | {{ $file->uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}
                                 </div>
                             </td>
                             <td>

@@ -7,6 +7,9 @@
         <p class="text-secondary fs-5 mb-0">Akun admin tenant sudah masuk dalam konteks tenant aktif.</p>
 
         <div class="d-flex flex-wrap gap-2 mt-4">
+            <a href="{{ route('tenant.admin.files.pending', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-brand">Pending Review</a>
+            <a href="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Semua Berkas</a>
+            <a href="{{ route('tenant.admin.files.deleted', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Berkas Terhapus</a>
             <a href="{{ route('tenant.admin.upload-links.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-brand">Link Upload</a>
             <a href="{{ route('tenant.admin.user-accounts.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Akun Uploader</a>
             <a href="{{ route('tenant.admin.master-data.index', ['tenant_slug' => request()->route('tenant_slug')]) }}#kategori" class="btn btn-brand">CRUD Kategori</a>

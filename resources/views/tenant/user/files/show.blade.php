@@ -50,7 +50,7 @@
                     </div>
                     <div class="col-12 col-md-6">
                         <div class="muted-label mb-1">Diunggah</div>
-                        <div class="fw-semibold">{{ $file->uploaded_at?->format('d M Y H:i') ?? '-' }}</div>
+                        <div class="fw-semibold">{{ $file->uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}</div>
                     </div>
                     <div class="col-12">
                         <div class="muted-label mb-1">Deskripsi</div>

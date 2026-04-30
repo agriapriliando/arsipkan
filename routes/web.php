@@ -4,9 +4,9 @@ use App\Http\Controllers\Auth\SuperadminAuthController;
 use App\Http\Controllers\Auth\TenantAdminAuthController;
 use App\Http\Controllers\Auth\UserAccountAuthController;
 use App\Http\Controllers\Auth\UserAccountPasswordController;
+use App\Http\Controllers\Tenant\AdminFileReviewController;
+use App\Http\Controllers\Tenant\TenantPublicCatalogController;
 use App\Http\Controllers\Tenant\UserPortalController;
-use App\Services\Tenancy\TenantContext;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'home')->name('home');
@@ -34,15 +34,9 @@ Route::prefix('{tenant_slug}')
     ->middleware('tenant')
     ->name('tenant.')
     ->group(function (): void {
-        Route::get('/', function (Request $request, TenantContext $tenantContext) {
-            $tenant = $tenantContext->tenant() ?? $request->attributes->get('tenant');
-
-            abort_unless($tenant !== null, 404);
-
-            return view('tenant.home', [
-                'tenant' => $tenant,
-            ]);
-        })->name('home');
+        Route::get('/', [TenantPublicCatalogController::class, 'index'])->name('home');
+        Route::get('/catalog/{file}', [TenantPublicCatalogController::class, 'show'])->name('catalog.show');
+        Route::get('/catalog/{file}/download', [TenantPublicCatalogController::class, 'download'])->name('catalog.download');
 
         Route::get('/upload/{code}', fn (string $tenant_slug, string $code) => view('tenant.upload.show', [
             'code' => $code,
@@ -82,6 +76,16 @@ Route::prefix('{tenant_slug}')
                     Route::view('/master-data', 'tenant.admin.master-data.index')->name('master-data.index');
                     Route::view('/upload-links', 'tenant.admin.upload-links.index')->name('upload-links.index');
                     Route::view('/user-accounts', 'tenant.admin.user-accounts.index')->name('user-accounts.index');
+                    Route::get('/files/pending', [AdminFileReviewController::class, 'pending'])->name('files.pending');
+                    Route::get('/files', [AdminFileReviewController::class, 'index'])->name('files.index');
+                    Route::get('/files/deleted', [AdminFileReviewController::class, 'deleted'])->name('files.deleted');
+                    Route::get('/files/{file}', [AdminFileReviewController::class, 'show'])->name('files.show');
+                    Route::get('/files/{file}/download', [AdminFileReviewController::class, 'download'])->name('files.download');
+                    Route::patch('/files/{file}/original-name', [AdminFileReviewController::class, 'updateOriginalName'])->name('files.original-name');
+                    Route::patch('/files/{file}', [AdminFileReviewController::class, 'update'])->name('files.update');
+                    Route::delete('/files/{file}/archive', [AdminFileReviewController::class, 'archive'])->name('files.archive');
+                    Route::patch('/files/{file}/restore', [AdminFileReviewController::class, 'restore'])->name('files.restore');
+                    Route::delete('/files/{file}', [AdminFileReviewController::class, 'destroy'])->name('files.destroy');
                 });
 
                 Route::middleware('auth.tenant_admin')->group(function (): void {

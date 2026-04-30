@@ -72,7 +72,7 @@
                             </td>
                             <td>
                                 <div class="fw-semibold">{{ $guestUploader->files_count }} file</div>
-                                <div class="text-secondary small">Terakhir diupdate {{ $guestUploader->updated_at?->format('d M Y H:i') ?? '-' }}</div>
+                                <div class="text-secondary small">Terakhir diupdate {{ $guestUploader->updated_at?->translatedFormat('d M Y H:i') ?? '-' }}</div>
                             </td>
                             <td>
                                 @if($userAccount)

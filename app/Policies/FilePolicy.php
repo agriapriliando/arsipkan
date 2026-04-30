@@ -85,6 +85,11 @@ class FilePolicy
         return $this->managesTenantModel($user, $file);
     }
 
+    public function archive(AdminUser|UserAccount $user, File $file): bool
+    {
+        return $this->managesTenantModel($user, $file) && $file->deleted_at === null;
+    }
+
     public function forceDelete(AdminUser|UserAccount $user, File $file): bool
     {
         return $this->managesTenantModel($user, $file);

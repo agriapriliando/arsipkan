@@ -365,9 +365,8 @@ Hasil tahap ini:
 3. Aturan tampilan:
    - daftar berkas saya menampilkan file miliknya sendiri
    - daftar berkas tenant menampilkan file `internal` tenant
-4. Tambahkan upload file dari user login.
-5. Berlakukan cek kuota yang sama seperti guest upload.
-6. Tambahkan soft delete file milik sendiri.
+4. Berlakukan cek kuota yang sama seperti guest upload.
+5. Tambahkan soft delete file milik sendiri.
 
 Hasil tahap ini:
 
