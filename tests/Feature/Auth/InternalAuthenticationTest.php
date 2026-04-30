@@ -154,3 +154,66 @@ it('resets a superadmin password through artisan only for superadmin accounts', 
         '--password' => 'new-secret-password',
     ])->assertFailed();
 });
+
+it('rate limits repeated failed superadmin login attempts', function () {
+    AdminUser::create([
+        'tenant_id' => null,
+        'name' => 'Superadmin',
+        'email' => 'superadmin-limit@test.local',
+        'password' => Hash::make('secret-password'),
+        'role' => AdminUser::ROLE_SUPERADMIN,
+        'is_active' => true,
+    ]);
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->post('/superadmin/login', [
+            'email' => 'superadmin-limit@test.local',
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('email');
+    }
+
+    $this->post('/superadmin/login', [
+        'email' => 'superadmin-limit@test.local',
+        'password' => 'wrong-password',
+    ])->assertSessionHasErrors('email');
+});
+
+it('rejects invalid indonesian phone numbers on user uploader login', function () {
+    $tenant = createTenantForAuth('tenant-user-invalid');
+
+    $this->post('/tenant-user-invalid/login', [
+        'phone_number' => '12345',
+        'password' => 'secret-password',
+    ])->assertSessionHasErrors('phone_number');
+});
+
+it('rate limits repeated failed uploader login attempts', function () {
+    $tenant = createTenantForAuth('tenant-user-limit');
+
+    $uploader = GuestUploader::create([
+        'tenant_id' => $tenant->id,
+        'name' => 'Uploader',
+        'phone_number' => '08123456789',
+        'phone_number_normalized' => '628123456789',
+    ]);
+
+    UserAccount::create([
+        'tenant_id' => $tenant->id,
+        'guest_uploader_id' => $uploader->id,
+        'password' => Hash::make('secret-password'),
+        'is_active' => true,
+        'must_change_password' => false,
+    ]);
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->post('/tenant-user-limit/login', [
+            'phone_number' => '08123456789',
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('phone_number');
+    }
+
+    $this->post('/tenant-user-limit/login', [
+        'phone_number' => '08123456789',
+        'password' => 'wrong-password',
+    ])->assertSessionHasErrors('phone_number');
+});

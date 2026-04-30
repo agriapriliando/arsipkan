@@ -442,10 +442,10 @@ Hasil tahap ini:
 ## 3.18 Bangun Pencatatan Download dan Skor
 
 1. Saat file publik diunduh, buat record `file_downloads`.
-2. Tentukan apakah download dihitung untuk skor.
+2. Jadikan download dihitung untuk skor.
 3. Siapkan `score_rules` default platform:
-   - poin upload valid
-   - poin download sah
+   - poin upload valid sebesar 10 per file
+   - poin download sah sebesar 1 per file
 4. Hitung `last_score` uploader.
 5. Buat `score_adjustments` untuk penyesuaian manual admin tenant.
 6. Tampilkan leaderboard mingguan dan bulanan per tenant.
@@ -481,8 +481,7 @@ Hasil tahap ini:
 
 1. Command reset password superadmin.
 2. Command rekalkulasi storage tenant.
-3. Jika perlu, command normalisasi data nomor HP lama.
-4. Jika perlu, command rebuild leaderboard.
+3. Jika perlu, command rebuild leaderboard.
 
 Hasil tahap ini:
 

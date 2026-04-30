@@ -259,7 +259,8 @@ it('allows tenant admins to review file metadata and change status', function ()
         ->and($file->fresh()->status)->toBe(File::STATUS_VALID)
         ->and($file->fresh()->reviewed_by_admin_id)->toBe($admin->id)
         ->and($file->fresh()->reviewed_at)->not()->toBeNull()
-        ->and($file->fresh()->tags()->pluck('tags.id')->all())->toBe([$tagA->id, $tagB->id]);
+        ->and($file->fresh()->tags()->pluck('tags.id')->all())->toBe([$tagA->id, $tagB->id])
+        ->and($uploader->fresh()->last_score)->toBe('10.00');
 });
 
 it('shows and allows changing file visibility from the tenant admin detail page', function () {

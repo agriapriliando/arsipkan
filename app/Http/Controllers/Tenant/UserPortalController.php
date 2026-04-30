@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\File;
 use App\Models\Tenant;
 use App\Models\UserAccount;
+use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +19,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserPortalController extends Controller
 {
-    public function dashboard(TenantContext $tenantContext): View
+    public function dashboard(TenantContext $tenantContext, ScoreService $scoreService): View
     {
         $tenant = $this->currentTenant($tenantContext);
         $account = $this->currentAccount();
@@ -40,6 +42,17 @@ class UserPortalController extends Controller
             'uploadLinkCount' => $tenant->uploadLinks()
                 ->where('is_active', true)
                 ->count(),
+            'currentScore' => $scoreService->recalculateUploaderScore($account->guestUploader),
+            'weeklyLeaderboard' => $scoreService->leaderboardForTenant(
+                $tenant,
+                CarbonImmutable::now()->startOfWeek(),
+                CarbonImmutable::now()->endOfWeek(),
+            ),
+            'monthlyLeaderboard' => $scoreService->leaderboardForTenant(
+                $tenant,
+                CarbonImmutable::now()->startOfMonth(),
+                CarbonImmutable::now()->endOfMonth(),
+            ),
         ]);
     }
 
@@ -110,7 +123,7 @@ class UserPortalController extends Controller
         ]);
     }
 
-    public function download(TenantContext $tenantContext, string $tenant_slug, int $file): StreamedResponse
+    public function download(TenantContext $tenantContext, string $tenant_slug, int $file, Request $request, ScoreService $scoreService): StreamedResponse
     {
         $tenant = $this->currentTenant($tenantContext);
         $account = $this->currentAccount();
@@ -120,6 +133,16 @@ class UserPortalController extends Controller
             ->findOrFail($file);
 
         abort_unless($account->can('view', $archivedFile), 403);
+
+        if (
+            $archivedFile->visibility === File::VISIBILITY_PUBLIC
+            && $archivedFile->status === File::STATUS_VALID
+        ) {
+            $isCountedForScore = (int) $account->guest_uploader_id !== (int) $archivedFile->guest_uploader_id;
+
+            $scoreService->recordPublicDownload($archivedFile, $request, $isCountedForScore);
+            $scoreService->recalculateUploaderScore($archivedFile->guestUploader()->firstOrFail());
+        }
 
         return Storage::disk('local')->download(
             $archivedFile->stored_name,
@@ -144,9 +167,9 @@ class UserPortalController extends Controller
 
         $archivedFile->delete();
 
-        return redirect()
-            ->route('tenant.user.files.mine', ['tenant_slug' => $tenant->slug])
-            ->with('status', 'File berhasil dipindahkan ke arsip terhapus.');
+        $request->session()->flash('status', 'File berhasil dipindahkan ke arsip terhapus.');
+
+        return new RedirectResponse(route('tenant.user.files.mine', ['tenant_slug' => $tenant->slug]));
     }
 
     public function updateVisibility(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file): RedirectResponse
@@ -179,9 +202,9 @@ class UserPortalController extends Controller
                 : File::STATUS_VALID,
         ])->save();
 
-        return redirect()
-            ->route('tenant.user.files.mine', ['tenant_slug' => $tenant->slug])
-            ->with('status', 'Visibilitas berkas berhasil diperbarui.');
+        $request->session()->flash('status', 'Visibilitas berkas berhasil diperbarui.');
+
+        return new RedirectResponse(route('tenant.user.files.mine', ['tenant_slug' => $tenant->slug]));
     }
 
     protected function currentTenant(TenantContext $tenantContext): Tenant

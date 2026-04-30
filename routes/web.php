@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\SuperadminAuthController;
 use App\Http\Controllers\Auth\TenantAdminAuthController;
 use App\Http\Controllers\Auth\UserAccountAuthController;
 use App\Http\Controllers\Auth\UserAccountPasswordController;
+use App\Http\Controllers\Tenant\AdminDashboardController;
 use App\Http\Controllers\Tenant\AdminFileReviewController;
 use App\Http\Controllers\Tenant\TenantPublicCatalogController;
 use App\Http\Controllers\Tenant\UserPortalController;
@@ -89,7 +90,8 @@ Route::prefix('{tenant_slug}')
                 });
 
                 Route::middleware('auth.tenant_admin')->group(function (): void {
-                    Route::view('/', 'tenant.admin.dashboard')->name('dashboard');
+                    Route::get('/', [AdminDashboardController::class, 'show'])->name('dashboard');
+                    Route::post('/score-adjustments', [AdminDashboardController::class, 'adjust'])->name('score-adjustments.store');
                     Route::post('/logout', [TenantAdminAuthController::class, 'destroy'])->name('logout');
                 });
             });

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\File;
 use App\Models\Tag;
 use App\Models\Tenant;
+use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -114,13 +115,16 @@ class TenantPublicCatalogController extends Controller
         ]);
     }
 
-    public function download(TenantContext $tenantContext, string $tenant_slug, int $file): StreamedResponse
+    public function download(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file, ScoreService $scoreService): StreamedResponse
     {
         $tenant = $this->currentTenant($tenantContext);
 
         $file = $this->publicFileQuery($tenant)->findOrFail($file);
 
         abort_unless(Storage::disk('local')->exists($file->stored_name), 404);
+
+        $scoreService->recordPublicDownload($file, $request, true);
+        $scoreService->recalculateUploaderScore($file->guestUploader);
 
         $headers = [
             'Content-Type' => $file->mime_type ?: 'application/octet-stream',

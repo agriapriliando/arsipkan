@@ -106,6 +106,8 @@ it('stores guest uploads on private storage and creates file records', function 
         ->and($file->upload_link_id)->toBe($uploadLink->id)
         ->and($file->uploaded_via)->toBe(File::UPLOADED_VIA_GUEST_LINK)
         ->and($file->original_name)->toBe('arsip.pdf')
+        ->and($file->stored_name)->not->toContain('arsip.pdf')
+        ->and($file->stored_name)->toStartWith('tenant-'.$tenant->id.'/guest-uploads/')
         ->and($file->visibility)->toBe(File::VISIBILITY_PUBLIC)
         ->and($file->status)->toBe(File::STATUS_PENDING_REVIEW)
         ->and($tenant->refresh()->storage_used_bytes)->toBe($file->file_size)
@@ -245,4 +247,62 @@ it('rejects uploads that exceed tenant storage quota', function () {
         ->and($uploadLink->refresh()->usage_count)->toBe(0);
 
     Storage::disk('local')->assertDirectoryEmpty('/');
+});
+
+it('rejects guest upload with invalid indonesian phone number', function () {
+    Storage::fake('local');
+
+    $tenant = createTenantForGuestUpload();
+    createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('name', 'Budi Pengunggah')
+        ->set('phoneNumber', '12345')
+        ->set('visibility', File::VISIBILITY_PRIVATE)
+        ->set('uploadedFile', UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf'))
+        ->call('submit')
+        ->assertHasErrors(['phoneNumber']);
+});
+
+it('rejects guest upload with disallowed file extension or mime type', function () {
+    Storage::fake('local');
+
+    $tenant = createTenantForGuestUpload();
+    createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('name', 'Budi Pengunggah')
+        ->set('phoneNumber', '08123456789')
+        ->set('visibility', File::VISIBILITY_PRIVATE)
+        ->set('uploadedFile', UploadedFile::fake()->create('malware.exe', 20, 'application/octet-stream'))
+        ->call('submit')
+        ->assertHasErrors(['uploadedFile']);
+});
+
+it('rate limits repeated guest upload attempts', function () {
+    Storage::fake('local');
+
+    $tenant = createTenantForGuestUpload();
+    createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    for ($i = 0; $i < 5; $i++) {
+        Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+            ->set('name', 'Budi Pengunggah')
+            ->set('phoneNumber', 'invalid-phone')
+            ->set('visibility', File::VISIBILITY_PRIVATE)
+            ->set('uploadedFile', UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf'))
+            ->call('submit')
+            ->assertHasErrors(['phoneNumber']);
+    }
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('name', 'Budi Pengunggah')
+        ->set('phoneNumber', 'invalid-phone')
+        ->set('visibility', File::VISIBILITY_PRIVATE)
+        ->set('uploadedFile', UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf'))
+        ->call('submit')
+        ->assertHasErrors(['uploadedFile']);
 });

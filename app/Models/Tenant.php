@@ -113,4 +113,23 @@ class Tenant extends Model
     {
         return $this->hasMany(ScoreAdjustment::class);
     }
+
+    public function storageUsagePercent(): float
+    {
+        if ($this->storage_quota_bytes <= 0) {
+            return 0.0;
+        }
+
+        return min(100, round(($this->storage_used_bytes / $this->storage_quota_bytes) * 100, 2));
+    }
+
+    public function storageRemainingBytes(): int
+    {
+        return max(0, $this->storage_quota_bytes - $this->storage_used_bytes);
+    }
+
+    public function isStorageNearLimit(): bool
+    {
+        return $this->storageUsagePercent() >= $this->storage_warning_threshold_percent;
+    }
 }

@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\File;
 use App\Models\Tag;
 use App\Models\Tenant;
+use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -176,7 +177,7 @@ class AdminFileReviewController extends Controller
         );
     }
 
-    public function update(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file): RedirectResponse
+    public function update(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file, ScoreService $scoreService): RedirectResponse
     {
         $tenant = $this->currentTenant($tenantContext);
         $manager = $this->currentManager();
@@ -231,13 +232,14 @@ class AdminFileReviewController extends Controller
         ])->save();
 
         $archivedFile->tags()->sync($validated['tag_ids'] ?? []);
+        $scoreService->recalculateUploaderScore($archivedFile->guestUploader()->firstOrFail());
 
-        return redirect()
-            ->route('tenant.admin.files.show', [
-                'tenant_slug' => $tenant->slug,
-                'file' => $archivedFile->id,
-            ])
-            ->with('status', 'Review file berhasil disimpan.');
+        $request->session()->flash('status', 'Review file berhasil disimpan.');
+
+        return new RedirectResponse(route('tenant.admin.files.show', [
+            'tenant_slug' => $tenant->slug,
+            'file' => $archivedFile->id,
+        ]));
     }
 
     public function updateOriginalName(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file): RedirectResponse
@@ -262,12 +264,12 @@ class AdminFileReviewController extends Controller
             'original_name' => trim($validated['original_name']),
         ])->save();
 
-        return redirect()
-            ->route('tenant.admin.files.show', [
-                'tenant_slug' => $tenant->slug,
-                'file' => $archivedFile->id,
-            ])
-            ->with('status', 'Nama asli file berhasil diperbarui.');
+        $request->session()->flash('status', 'Nama asli file berhasil diperbarui.');
+
+        return new RedirectResponse(route('tenant.admin.files.show', [
+            'tenant_slug' => $tenant->slug,
+            'file' => $archivedFile->id,
+        ]));
     }
 
     public function restore(TenantContext $tenantContext, string $tenant_slug, int $file): RedirectResponse
@@ -284,9 +286,9 @@ class AdminFileReviewController extends Controller
 
         $archivedFile->restore();
 
-        return redirect()
-            ->route('tenant.admin.files.deleted', ['tenant_slug' => $tenant->slug])
-            ->with('status', 'File berhasil dipulihkan.');
+        request()->session()->flash('status', 'File berhasil dipulihkan.');
+
+        return new RedirectResponse(route('tenant.admin.files.deleted', ['tenant_slug' => $tenant->slug]));
     }
 
     public function archive(TenantContext $tenantContext, string $tenant_slug, int $file): RedirectResponse
@@ -302,9 +304,9 @@ class AdminFileReviewController extends Controller
 
         $archivedFile->delete();
 
-        return redirect()
-            ->route('tenant.admin.files.index', ['tenant_slug' => $tenant->slug])
-            ->with('status', 'File berhasil dipindahkan ke berkas terhapus.');
+        request()->session()->flash('status', 'File berhasil dipindahkan ke berkas terhapus.');
+
+        return new RedirectResponse(route('tenant.admin.files.index', ['tenant_slug' => $tenant->slug]));
     }
 
     public function destroy(TenantContext $tenantContext, string $tenant_slug, int $file): RedirectResponse
@@ -331,9 +333,9 @@ class AdminFileReviewController extends Controller
 
         $archivedFile->forceDelete();
 
-        return redirect()
-            ->route('tenant.admin.files.deleted', ['tenant_slug' => $tenant->slug])
-            ->with('status', 'File berhasil dihapus permanen.');
+        request()->session()->flash('status', 'File berhasil dihapus permanen.');
+
+        return new RedirectResponse(route('tenant.admin.files.deleted', ['tenant_slug' => $tenant->slug]));
     }
 
     protected function currentTenant(TenantContext $tenantContext): Tenant

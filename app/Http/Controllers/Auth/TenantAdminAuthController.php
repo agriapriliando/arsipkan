@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class TenantAdminAuthController extends Controller
@@ -33,6 +35,14 @@ class TenantAdminAuthController extends Controller
         $tenant = $tenantContext->tenant();
         abort_unless($tenant !== null, 404);
 
+        $rateLimiterKey = Str::transliterate($tenant->slug.'|'.Str::lower((string) $request->input('email')).'|'.$request->ip());
+
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
+            return back()
+                ->withErrors(['email' => 'Terlalu banyak percobaan login. Coba lagi dalam '.RateLimiter::availableIn($rateLimiterKey).' detik.'])
+                ->onlyInput('email');
+        }
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -47,10 +57,14 @@ class TenantAdminAuthController extends Controller
             ->first();
 
         if ($admin === null || ! Hash::check($credentials['password'], $admin->password)) {
+            RateLimiter::hit($rateLimiterKey, 60);
+
             return back()
                 ->withErrors(['email' => 'Email atau password tidak valid untuk tenant ini.'])
                 ->onlyInput('email');
         }
+
+        RateLimiter::clear($rateLimiterKey);
 
         Auth::guard('tenant_admin')->login($admin, $request->boolean('remember'));
         $request->session()->regenerate();

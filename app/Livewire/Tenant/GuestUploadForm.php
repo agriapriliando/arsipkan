@@ -7,13 +7,16 @@ use App\Models\GuestUploader;
 use App\Models\Tenant;
 use App\Models\UploadLink;
 use App\Services\PhoneNumberNormalizer;
+use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
@@ -59,35 +62,56 @@ class GuestUploadForm extends Component
         return view('livewire.tenant.guest-upload-form');
     }
 
-    public function submit(PhoneNumberNormalizer $phoneNumberNormalizer): void
+    public function submit(PhoneNumberNormalizer $phoneNumberNormalizer, ScoreService $scoreService): void
     {
         $tenant = $this->currentTenant();
         $this->uploadLink->refresh()->load('tenant');
 
         abort_unless(Gate::forUser(null)->allows('uploadAsGuest', $this->uploadLink), 404);
 
-        $validated = $this->validate([
-            ...$this->identityRules(),
-            'visibility' => [
-                'required',
-                Rule::in([
-                    ArchivedFile::VISIBILITY_PUBLIC,
-                    ArchivedFile::VISIBILITY_INTERNAL,
-                    ArchivedFile::VISIBILITY_PRIVATE,
-                ]),
-            ],
-            'uploadedFile' => ['required', 'file', 'max:102400'],
-        ], [], [
-            ...$this->identityAttributes(),
-            'uploadedFile' => 'file',
-        ]);
+        $rateLimiterKey = Str::transliterate('upload|'.$tenant->slug.'|'.$this->uploadLink->code.'|'.$this->phoneNumber.'|'.request()->ip());
+
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
+            $this->addError('uploadedFile', 'Terlalu banyak percobaan upload. Coba lagi dalam '.RateLimiter::availableIn($rateLimiterKey).' detik.');
+
+            return;
+        }
+
+        try {
+            $validated = $this->validate([
+                ...$this->identityRules(),
+                'visibility' => [
+                    'required',
+                    Rule::in([
+                        ArchivedFile::VISIBILITY_PUBLIC,
+                        ArchivedFile::VISIBILITY_INTERNAL,
+                        ArchivedFile::VISIBILITY_PRIVATE,
+                    ]),
+                ],
+                'uploadedFile' => [
+                    'required',
+                    'file',
+                    'max:102400',
+                    'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,txt',
+                    'mimetypes:text/plain,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/jpeg,image/png',
+                ],
+            ], [], [
+                ...$this->identityAttributes(),
+                'uploadedFile' => 'file',
+            ]);
+        } catch (ValidationException $exception) {
+            RateLimiter::hit($rateLimiterKey, 60);
+
+            throw $exception;
+        }
 
         $fileSize = $this->uploadedFile?->getSize() ?? 0;
         $phoneNumberNormalized = $phoneNumberNormalizer->normalize($validated['phoneNumber']);
         $guestToken = $this->guestToken($tenant);
         $storedPath = null;
+        $guestUploaderId = null;
 
-        DB::transaction(function () use ($tenant, $validated, $phoneNumberNormalized, $guestToken, $fileSize, &$storedPath): void {
+        DB::transaction(function () use ($tenant, $validated, $phoneNumberNormalized, $guestToken, $fileSize, &$storedPath, &$guestUploaderId, $rateLimiterKey): void {
             $lockedTenant = Tenant::query()
                 ->whereKey($tenant->id)
                 ->lockForUpdate()
@@ -101,6 +125,7 @@ class GuestUploadForm extends Component
             abort_unless(Gate::forUser(null)->allows('uploadAsGuest', $lockedUploadLink->load('tenant')), 404);
 
             if ($lockedTenant->storage_used_bytes + $fileSize > $lockedTenant->storage_quota_bytes) {
+                RateLimiter::hit($rateLimiterKey, 60);
                 $this->addError('uploadedFile', 'Kuota storage tenant sudah penuh.');
 
                 return;
@@ -121,6 +146,7 @@ class GuestUploadForm extends Component
                 'guest_token' => $guestToken,
                 'last_ip' => request()->ip(),
             ])->save();
+            $guestUploaderId = $guestUploader->id;
 
             $storedPath = $this->uploadedFile->store(
                 path: 'tenant-'.$lockedTenant->id.'/guest-uploads',
@@ -149,8 +175,20 @@ class GuestUploadForm extends Component
         });
 
         if ($this->getErrorBag()->isNotEmpty()) {
+            RateLimiter::hit($rateLimiterKey, 60);
+
             return;
         }
+
+        if ($guestUploaderId !== null) {
+            $uploader = GuestUploader::query()->find($guestUploaderId);
+
+            if ($uploader instanceof GuestUploader) {
+                $scoreService->recalculateUploaderScore($uploader);
+            }
+        }
+
+        RateLimiter::clear($rateLimiterKey);
 
         Cookie::queue($this->guestTokenCookieName($tenant), $guestToken, 60 * 24 * 365);
         $this->queueUploaderIdentityCookie($tenant, $validated['name'], $validated['phoneNumber']);
@@ -287,7 +325,18 @@ class GuestUploadForm extends Component
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'phoneNumber' => ['required', 'string', 'max:30'],
+            'phoneNumber' => [
+                'required',
+                'string',
+                'max:30',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    $normalizer = app(PhoneNumberNormalizer::class);
+
+                    if (! is_string($value) || ! $normalizer->isValid($value)) {
+                        $fail('Nomor HP harus berupa nomor Indonesia yang valid.');
+                    }
+                },
+            ],
         ];
     }
 
