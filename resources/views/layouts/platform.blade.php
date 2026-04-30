@@ -4,6 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? config('app.name', 'Arsipkan') }}</title>
+        <meta name="description" content="{{ $metaDescription ?? 'Arsipkan adalah aplikasi arsip digital multi-tenant untuk pengelolaan dokumen, katalog publik, validasi file, dan kontribusi uploader per organisasi.' }}">
+        <meta name="keywords" content="{{ $metaKeywords ?? 'aplikasi arsip digital, manajemen dokumen, katalog publik, arsip instansi, arsip tenant, unggah dokumen, leaderboard uploader' }}">
+        <meta name="robots" content="{{ $metaRobots ?? 'index,follow' }}">
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="{{ $metaOgTitle ?? ($title ?? config('app.name', 'Arsipkan')) }}">
+        <meta property="og:description" content="{{ $metaOgDescription ?? ($metaDescription ?? 'Arsipkan membantu organisasi mengelola arsip digital secara terstruktur, aman, dan mudah diakses.') }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:site_name" content="{{ config('app.name', 'Arsipkan') }}">
         <x-layouts.assets />
         @livewireStyles
     </head>

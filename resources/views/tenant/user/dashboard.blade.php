@@ -13,7 +13,7 @@
     </section>
 
     <div class="row g-4">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
             <section class="stat-card">
                 <div class="stat-icon icon-purple">
                     <i data-lucide="folder"></i>
@@ -23,7 +23,7 @@
             </section>
         </div>
 
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
             <section class="stat-card">
                 <div class="stat-icon icon-amber">
                     <i data-lucide="file-clock"></i>
@@ -33,19 +33,16 @@
             </section>
         </div>
 
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
             <section class="stat-card">
                 <div class="stat-icon icon-emerald">
-                    <i data-lucide="link"></i>
+                    <i data-lucide="database"></i>
                 </div>
-                <div class="stat-value">{{ $uploadLinkCount }}</div>
-                <div class="stat-label">Link upload aktif</div>
+                <div class="stat-value">{{ $tenantFileCount }}</div>
+                <div class="stat-label">Total berkas organisasi</div>
             </section>
         </div>
-    </div>
-
-    <div class="row g-4 mt-1">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
             <section class="stat-card">
                 <div class="stat-icon icon-emerald">
                     <i data-lucide="badge-plus"></i>
@@ -56,9 +53,66 @@
         </div>
     </div>
 
+
     <section class="panel-box p-4 mt-4">
         <h2 class="h5 fw-bold mb-2">Cara Upload</h2>
         <p class="text-secondary mb-0">Sebagai user uploader, Anda tidak mengunggah file dari portal ini. Minta atau gunakan link upload organisasi yang dibagikan admin, lalu unggah file melalui halaman link tersebut.</p>
+    </section>
+
+    <section class="panel-box p-4 mt-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+            <div>
+                <h2 class="h5 fw-bold mb-1">Daftar Link Upload Aktif</h2>
+                <p class="text-secondary mb-0">Gunakan salah satu link aktif berikut untuk mengunggah berkas tanpa login tambahan.</p>
+            </div>
+            <span class="tenant-chip">{{ $uploadLinkCount }} link aktif</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Judul</th>
+                        <th>Kode</th>
+                        <th>Masa Berlaku</th>
+                        <th>Batas Pakai</th>
+                        <th class="text-end">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($activeUploadLinks as $uploadLink)
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ $uploadLink->title ?: 'Link Upload' }}</div>
+                                <div class="text-secondary small">Unggah tamu untuk {{ $currentTenant->name ?? 'organisasi' }}</div>
+                            </td>
+                            <td><code>{{ $uploadLink->code }}</code></td>
+                            <td>
+                                @if($uploadLink->expires_at)
+                                    <div class="fw-semibold">{{ $uploadLink->expires_at->translatedFormat('d M Y H:i') }}</div>
+                                @else
+                                    <div class="fw-semibold">Tanpa batas waktu</div>
+                                @endif
+                            </td>
+                            <td>
+                                @if($uploadLink->max_usage)
+                                    <div class="fw-semibold">{{ $uploadLink->usage_count }}/{{ $uploadLink->max_usage }}</div>
+                                @else
+                                    <div class="fw-semibold">Tak terbatas</div>
+                                @endif
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ route('tenant.upload.show', ['tenant_slug' => request()->route('tenant_slug'), 'code' => $uploadLink->code]) }}" class="btn btn-outline-brand btn-sm">Buka Link</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-secondary py-4">Belum ada link upload aktif yang bisa digunakan saat ini.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </section>
 
     <div class="row g-4 mt-1">

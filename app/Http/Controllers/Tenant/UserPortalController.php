@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\File;
 use App\Models\Tenant;
+use App\Models\UploadLink;
 use App\Models\UserAccount;
 use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
@@ -23,6 +24,12 @@ class UserPortalController extends Controller
     {
         $tenant = $this->currentTenant($tenantContext);
         $account = $this->currentAccount();
+        $activeUploadLinks = UploadLink::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('is_active', true)
+            ->get()
+            ->filter(fn (UploadLink $uploadLink): bool => $uploadLink->isUsableForGuestUpload())
+            ->values();
 
         return view('tenant.user.dashboard', [
             'myFileCount' => File::query()
@@ -34,14 +41,16 @@ class UserPortalController extends Controller
                 ->where('visibility', File::VISIBILITY_INTERNAL)
                 ->where('status', File::STATUS_VALID)
                 ->count(),
+            'tenantFileCount' => File::query()
+                ->where('tenant_id', $tenant->id)
+                ->count(),
             'pendingReviewCount' => File::query()
                 ->where('tenant_id', $tenant->id)
                 ->where('guest_uploader_id', $account->guest_uploader_id)
                 ->where('status', File::STATUS_PENDING_REVIEW)
                 ->count(),
-            'uploadLinkCount' => $tenant->uploadLinks()
-                ->where('is_active', true)
-                ->count(),
+            'uploadLinkCount' => $activeUploadLinks->count(),
+            'activeUploadLinks' => $activeUploadLinks,
             'currentScore' => $scoreService->recalculateUploaderScore($account->guestUploader),
             'weeklyLeaderboard' => $scoreService->leaderboardForTenant(
                 $tenant,

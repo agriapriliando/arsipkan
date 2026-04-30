@@ -3,6 +3,7 @@
 use App\Models\File;
 use App\Models\GuestUploader;
 use App\Models\Tenant;
+use App\Models\UploadLink;
 use App\Models\UserAccount;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -62,10 +63,33 @@ it('shows the user portal pages for authenticated user uploaders', function () {
     $tenant = createTenantForUserPortal();
     $account = createUserForUserPortal($tenant);
 
+    UploadLink::create([
+        'tenant_id' => $tenant->id,
+        'code' => 'AKTIF-PORTAL',
+        'title' => 'Link Aktif Portal',
+        'is_active' => true,
+        'expires_at' => now()->addDay(),
+        'max_usage' => 10,
+        'usage_count' => 1,
+    ]);
+    UploadLink::create([
+        'tenant_id' => $tenant->id,
+        'code' => 'EXPIRED-PORTAL',
+        'title' => 'Link Expired Portal',
+        'is_active' => true,
+        'expires_at' => now()->subMinute(),
+        'max_usage' => 10,
+        'usage_count' => 1,
+    ]);
+
     $this->actingAs($account, 'user_account')
         ->get('/portal-a/dashboard')
         ->assertOk()
-        ->assertSee('Portal Uploader');
+        ->assertSee('Portal Uploader')
+        ->assertSee('Daftar Link Upload Aktif')
+        ->assertSee('Link Aktif Portal')
+        ->assertSee('/portal-a/upload/AKTIF-PORTAL')
+        ->assertDontSee('Link Expired Portal');
 
     $this->actingAs($account, 'user_account')
         ->get('/portal-a/my-files')
