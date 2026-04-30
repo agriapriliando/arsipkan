@@ -9,7 +9,7 @@
         </div>
 
         @if($mode === 'mine')
-            <span class="text-secondary small">Upload file dilakukan melalui link upload tenant.</span>
+            <span class="text-secondary small">Upload file dilakukan melalui link upload organisasi.</span>
         @endif
     </div>
 

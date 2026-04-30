@@ -5,7 +5,7 @@
         <div>
             <span class="eyebrow mb-3">Profil</span>
             <h1 class="h2 fw-bold mb-1">Profil User Uploader</h1>
-            <p class="text-secondary mb-0">Informasi akun login uploader pada tenant aktif.</p>
+            <p class="text-secondary mb-0">Informasi akun login uploader pada organisasi aktif.</p>
         </div>
 
         <a href="{{ route('tenant.password.edit', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-brand">Ubah Password</a>
@@ -26,7 +26,7 @@
                         <div class="fw-semibold">{{ $account->guestUploader?->phone_number ?? '-' }}</div>
                     </div>
                     <div class="col-12 col-md-6">
-                        <div class="muted-label mb-1">Tenant</div>
+                        <div class="muted-label mb-1">Organisasi</div>
                         <div class="fw-semibold">{{ $tenant->name }}</div>
                     </div>
                     <div class="col-12 col-md-6">

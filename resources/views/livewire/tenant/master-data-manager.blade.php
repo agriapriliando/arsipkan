@@ -3,7 +3,7 @@
         <div>
             <span class="eyebrow mb-3">Master Data</span>
             <h1 class="h2 fw-bold mb-1">Kategori dan Tag</h1>
-            <p class="text-secondary mb-0">Kelola klasifikasi arsip untuk tenant aktif.</p>
+            <p class="text-secondary mb-0">Kelola klasifikasi arsip untuk organisasi aktif.</p>
         </div>
     </div>
 

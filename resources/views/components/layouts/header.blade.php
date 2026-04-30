@@ -38,7 +38,7 @@
 
     <div class="header-actions d-flex align-items-center justify-content-between justify-content-lg-end gap-3">
         @if(isset($currentTenant) && $currentTenant)
-            <span class="tenant-chip">Tenant aktif: {{ $currentTenant->name }}</span>
+            <span class="tenant-chip">Organisasi aktif: {{ $currentTenant->name }}</span>
         @endif
 
         <button type="button" class="btn p-2 text-secondary position-relative">

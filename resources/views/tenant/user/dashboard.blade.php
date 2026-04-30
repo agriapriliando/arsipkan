@@ -3,12 +3,12 @@
 @section('content')
     <section class="hero-card p-4 p-lg-5 mb-4">
         <span class="eyebrow mb-3">User Uploader</span>
-        <h1 class="display-6 fw-bold mb-3">Portal Uploader {{ $currentTenant->name ?? 'Tenant' }}</h1>
-        <p class="text-secondary fs-5 mb-0">Kelola berkas Anda dan lihat arsip internal tenant. Upload hanya dilakukan melalui link upload tenant.</p>
+        <h1 class="display-6 fw-bold mb-3">Portal Uploader {{ $currentTenant->name ?? 'Organisasi' }}</h1>
+        <p class="text-secondary fs-5 mb-0">Kelola berkas Anda dan lihat arsip internal organisasi. Upload hanya dilakukan melalui link upload organisasi.</p>
 
         <div class="d-flex flex-wrap gap-2 mt-4">
             <a href="{{ route('tenant.user.files.mine', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-brand">Berkas Saya</a>
-            <a href="{{ route('tenant.user.files.tenant', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Arsip Tenant</a>
+            <a href="{{ route('tenant.user.files.tenant', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Arsip Organisasi</a>
         </div>
     </section>
 
@@ -58,7 +58,7 @@
 
     <section class="panel-box p-4 mt-4">
         <h2 class="h5 fw-bold mb-2">Cara Upload</h2>
-        <p class="text-secondary mb-0">Sebagai user uploader, Anda tidak mengunggah file dari portal ini. Minta atau gunakan link upload tenant yang dibagikan admin, lalu unggah file melalui halaman link tersebut.</p>
+        <p class="text-secondary mb-0">Sebagai user uploader, Anda tidak mengunggah file dari portal ini. Minta atau gunakan link upload organisasi yang dibagikan admin, lalu unggah file melalui halaman link tersebut.</p>
     </section>
 
     <div class="row g-4 mt-1">

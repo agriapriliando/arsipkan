@@ -2,7 +2,7 @@
 
 @section('content')
     <section class="hero-card p-4 p-lg-5 mb-4">
-        <span class="eyebrow mb-3">Admin Tenant</span>
+        <span class="eyebrow mb-3">Admin Organisasi</span>
         <h1 class="display-6 fw-bold mb-3">Dashboard Admin {{ $tenant->name }}</h1>
         <p class="text-secondary fs-5 mb-0">Pantau kontribusi uploader, skor aktif, dan lakukan penyesuaian manual jika diperlukan.</p>
 
@@ -22,7 +22,7 @@
     <div class="row g-4">
         <div class="col-12 col-xl-4">
             <section class="panel-box p-4 h-100">
-                <h2 class="h5 fw-bold mb-3">Kuota Storage Tenant</h2>
+                <h2 class="h5 fw-bold mb-3">Kuota Storage Organisasi</h2>
                 <div class="muted-label mb-1">Total kuota</div>
                 <div class="fs-4 fw-bold mb-3">{{ number_format($tenant->storage_quota_bytes / 1024 / 1024 / 1024, 2, ',', '.') }} GB</div>
                 <div class="muted-label mb-1">Terpakai</div>
@@ -44,16 +44,16 @@
 
         <div class="col-12 col-xl-8">
             <section class="panel-box p-4 h-100">
-                <h2 class="h5 fw-bold mb-3">Aturan Skor Aktif</h2>
                 <div class="row g-4">
                     <div class="col-12 col-lg-5">
+                        <h2 class="h5 fw-bold mb-3">Aturan Skor Aktif</h2>
                         <div class="muted-label mb-1">Upload valid</div>
                         <div class="fs-4 fw-bold mb-3">+{{ $scoreRule->upload_valid_point }}</div>
                         <div class="text-secondary small mb-3">Diberikan saat file uploader berstatus <code>valid</code>.</div>
                         <div class="muted-label mb-1">Download sah</div>
                         <div class="fs-4 fw-bold mb-3">+{{ $scoreRule->download_point }}</div>
                         <div class="text-secondary small mb-3">Dihitung dari download file publik yang tercatat dan layak dinilai.</div>
-                        <div class="text-secondary small">Rule default platform otomatis dibuat jika tenant belum memiliki data skor sebelumnya.</div>
+                        <div class="text-secondary small">Rule default platform otomatis dibuat jika organisasi belum memiliki data skor sebelumnya.</div>
                     </div>
 
                     <div class="col-12 col-lg-7">
@@ -61,7 +61,7 @@
                         <p class="text-secondary small mb-3">Gunakan nilai positif untuk menambah skor dan nilai negatif untuk mengurangi skor uploader.</p>
                         <form method="POST" action="{{ route('tenant.admin.score-adjustments.store', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="row g-3 align-items-end">
                             @csrf
-                            <div class="col-md-7">
+                            <div class="col-md-12">
                                 <label for="guest_uploader_id" class="form-label fw-semibold">Uploader</label>
                                 <select id="guest_uploader_id" name="guest_uploader_id" class="form-select @error('guest_uploader_id') is-invalid @enderror">
                                     <option value="">Pilih uploader</option>
@@ -75,7 +75,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-12">
                                 <label for="delta" class="form-label fw-semibold">Nilai</label>
                                 <input id="delta" type="number" step="0.01" name="delta" value="{{ old('delta') }}" class="form-control @error('delta') is-invalid @enderror" placeholder="contoh: 5 atau -2">
                                 <div class="form-text">Contoh: <code>5</code> menambah, <code>-2</code> mengurangi.</div>
@@ -83,7 +83,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-12">
                                 <button type="submit" class="btn btn-brand w-100">Simpan</button>
                             </div>
                         </form>

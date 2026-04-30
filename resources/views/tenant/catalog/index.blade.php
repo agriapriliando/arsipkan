@@ -8,10 +8,10 @@
     <section class="hero-card p-4 p-lg-5 mb-4">
         <div class="row g-4 align-items-end">
             <div class="col-12 col-lg-8">
-                <span class="eyebrow mb-3">Katalog Publik Tenant</span>
+                <span class="eyebrow mb-3">Katalog Publik Organisasi</span>
                 <h1 class="display-6 fw-bold mb-3">{{ $tenant->name }}</h1>
                 <p class="text-secondary fs-5 mb-0">
-                    Arsip publik yang telah lolos validasi tenant dan dapat diakses umum.
+                    Arsip publik yang telah lolos validasi organisasi dan dapat diakses umum.
                 </p>
             </div>
 

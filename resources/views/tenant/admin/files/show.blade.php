@@ -5,7 +5,7 @@
         <div>
             <span class="eyebrow mb-3">Review File</span>
             <h1 class="h2 fw-bold mb-1">{{ $file->title ?: $file->original_name }}</h1>
-            <p class="text-secondary mb-0">Lengkapi metadata dan tentukan status review file tenant ini.</p>
+            <p class="text-secondary mb-0">Lengkapi metadata dan tentukan status review file organisasi ini.</p>
         </div>
 
         <div class="d-flex flex-wrap gap-2">
@@ -167,11 +167,11 @@
                                             <span class="fw-semibold d-block">{{ $label }}</span>
                                             <span class="text-secondary small">
                                                 @if($value === 'private')
-                                                    Hanya pemilik file dan admin tenant yang dapat mengakses.
+                                                    Hanya pemilik file dan admin organisasi yang dapat mengakses.
                                                 @elseif($value === 'internal')
-                                                    Dapat diakses di dalam portal tenant.
+                                                    Dapat diakses di dalam portal organisasi.
                                                 @else
-                                                    Dapat muncul di katalog publik tenant.
+                                                    Dapat muncul di katalog publik organisasi.
                                                 @endif
                                             </span>
                                         </span>

@@ -3,7 +3,7 @@
         <div>
             <span class="eyebrow mb-3">Akun Uploader</span>
             <h1 class="h2 fw-bold mb-1">Manajemen Akun User Uploader</h1>
-            <p class="text-secondary mb-0">Buat akun login dari uploader yang sudah pernah mengunggah file di tenant ini.</p>
+            <p class="text-secondary mb-0">Buat akun login dari uploader yang sudah pernah mengunggah file di organisasi ini.</p>
         </div>
 
         <div class="tenant-search">
@@ -29,7 +29,7 @@
             <div>
                 <h2 class="h5 fw-bold mb-1">URL Login User Uploader</h2>
                 <div><code>{{ $userLoginUrl }}</code></div>
-                <div class="small text-muted mt-1">Bagikan URL ini ke uploader tenant agar mereka bisa login dengan nomor HP dan password akun.</div>
+                <div class="small text-muted mt-1">Bagikan URL ini ke uploader organisasi agar mereka bisa login dengan nomor HP dan password akun.</div>
             </div>
 
             <div class="d-flex flex-column align-items-lg-end">

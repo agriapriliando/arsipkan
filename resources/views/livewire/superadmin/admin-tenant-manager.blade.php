@@ -2,8 +2,8 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
             <span class="eyebrow mb-3">Superadmin</span>
-            <h1 class="h2 fw-bold mb-1">Manajemen Admin Tenant</h1>
-            <p class="text-secondary mb-0">Kelola akun operasional tenant, status akses, dan reset password.</p>
+            <h1 class="h2 fw-bold mb-1">Manajemen Admin Organisasi</h1>
+            <p class="text-secondary mb-0">Kelola akun operasional organisasi, status akses, dan reset password.</p>
         </div>
 
         <button type="button" class="btn btn-brand" wire:click="create">Tambah Admin</button>
@@ -12,13 +12,13 @@
     <div class="row g-4">
         <div class="col-12 col-xl-4">
             <section class="panel-box p-4 mb-4">
-                <h2 class="h5 fw-bold mb-3">{{ $editingAdminId ? 'Edit Admin Tenant' : 'Tambah Admin Tenant' }}</h2>
+                <h2 class="h5 fw-bold mb-3">{{ $editingAdminId ? 'Edit Admin Organisasi' : 'Tambah Admin Organisasi' }}</h2>
 
                 <form wire:submit="save">
                     <div class="mb-3">
-                        <label for="tenantId" class="form-label small fw-bold text-secondary">Tenant</label>
+                        <label for="tenantId" class="form-label small fw-bold text-secondary">Organisasi</label>
                         <select id="tenantId" class="form-select form-control @error('tenant_id') is-invalid @enderror" wire:model="tenantId">
-                            <option value="">Pilih tenant</option>
+                            <option value="">Pilih organisasi</option>
                             @foreach($tenants as $tenant)
                                 <option value="{{ $tenant->id }}">{{ $tenant->name }} ({{ $tenant->code }})</option>
                             @endforeach
@@ -96,7 +96,7 @@
         <div class="col-12 col-xl-8">
             <section class="panel-box p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
-                    <h2 class="h5 fw-bold mb-0">Daftar Admin Tenant</h2>
+                    <h2 class="h5 fw-bold mb-0">Daftar Admin Organisasi</h2>
                     <input type="search" class="form-control tenant-search" wire:model.live.debounce.350ms="search" placeholder="Cari admin...">
                 </div>
 
@@ -105,7 +105,7 @@
                         <thead>
                             <tr>
                                 <th>Admin</th>
-                                <th>Tenant</th>
+                                <th>Organisasi</th>
                                 <th>Status</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
@@ -118,7 +118,7 @@
                                         <div class="text-secondary small">{{ $admin->email }}</div>
                                     </td>
                                     <td>
-                                        <div class="fw-semibold">{{ $admin->tenant?->name ?? 'Tenant dihapus' }}</div>
+                                        <div class="fw-semibold">{{ $admin->tenant?->name ?? 'Organisasi dihapus' }}</div>
                                         <div class="text-secondary small">{{ $admin->tenant?->code ?? '-' }}</div>
                                     </td>
                                     <td>
@@ -138,7 +138,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-secondary py-5">Belum ada admin tenant.</td>
+                                    <td colspan="4" class="text-center text-secondary py-5">Belum ada admin organisasi.</td>
                                 </tr>
                             @endforelse
                         </tbody>

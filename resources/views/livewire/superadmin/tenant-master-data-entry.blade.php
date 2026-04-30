@@ -2,11 +2,11 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
             <span class="eyebrow mb-3">Superadmin</span>
-            <h1 class="h2 fw-bold mb-1">Master Data Tenant</h1>
-            <p class="text-secondary mb-0">Pilih tenant aktif untuk masuk ke CRUD kategori atau CRUD tag.</p>
+            <h1 class="h2 fw-bold mb-1">Master Data Organisasi</h1>
+            <p class="text-secondary mb-0">Pilih organisasi aktif untuk masuk ke CRUD kategori atau CRUD tag.</p>
         </div>
 
-        <input type="search" class="form-control tenant-search" wire:model.live.debounce.350ms="search" placeholder="Cari tenant...">
+        <input type="search" class="form-control tenant-search" wire:model.live.debounce.350ms="search" placeholder="Cari organisasi...">
     </div>
 
     <section class="panel-box p-4">
@@ -14,7 +14,7 @@
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Tenant</th>
+                        <th>Organisasi</th>
                         <th>Path</th>
                         <th>Status</th>
                         <th class="text-end">Aksi</th>
@@ -42,7 +42,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-secondary py-5">Belum ada tenant.</td>
+                            <td colspan="4" class="text-center text-secondary py-5">Belum ada organisasi.</td>
                         </tr>
                     @endforelse
                 </tbody>

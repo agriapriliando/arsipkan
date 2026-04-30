@@ -2,17 +2,17 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
             <span class="eyebrow mb-3">Superadmin</span>
-            <h1 class="h2 fw-bold mb-1">Manajemen Tenant</h1>
-            <p class="text-secondary mb-0">Kelola organisasi, status aktif, kuota storage, dan akses konteks tenant.</p>
+            <h1 class="h2 fw-bold mb-1">Manajemen Organisasi</h1>
+            <p class="text-secondary mb-0">Kelola organisasi, status aktif, kuota storage, dan akses konteks organisasi.</p>
         </div>
 
-        <button type="button" class="btn btn-brand" wire:click="create">Tambah Tenant</button>
+        <button type="button" class="btn btn-brand" wire:click="create">Tambah Organisasi</button>
     </div>
 
     <div class="row g-4">
         <div class="col-12 col-xl-4">
             <section class="panel-box p-4">
-                <h2 class="h5 fw-bold mb-3">{{ $editingTenantId ? 'Edit Tenant' : 'Tambah Tenant' }}</h2>
+                <h2 class="h5 fw-bold mb-3">{{ $editingTenantId ? 'Edit Organisasi' : 'Tambah Organisasi' }}</h2>
 
                 <form wire:submit="save">
                     <div class="mb-3">
@@ -24,7 +24,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="name" class="form-label small fw-bold text-secondary">Nama Tenant</label>
+                        <label for="name" class="form-label small fw-bold text-secondary">Nama Organisasi</label>
                         <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" wire:model="name" placeholder="Pemerintah Daerah A">
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -59,12 +59,12 @@
 
                     <div class="form-check form-switch my-4">
                         <input id="isActive" type="checkbox" class="form-check-input" wire:model="isActive">
-                        <label for="isActive" class="form-check-label">Tenant aktif</label>
+                        <label for="isActive" class="form-check-label">Organisasi aktif</label>
                     </div>
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-brand flex-grow-1" wire:loading.attr="disabled">
-                            {{ $editingTenantId ? 'Simpan Perubahan' : 'Buat Tenant' }}
+                            {{ $editingTenantId ? 'Simpan Perubahan' : 'Buat Organisasi' }}
                         </button>
 
                         @if($editingTenantId)
@@ -78,15 +78,15 @@
         <div class="col-12 col-xl-8">
             <section class="panel-box p-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
-                    <h2 class="h5 fw-bold mb-0">Daftar Tenant</h2>
-                    <input type="search" class="form-control tenant-search" wire:model.live.debounce.350ms="search" placeholder="Cari tenant...">
+                    <h2 class="h5 fw-bold mb-0">Daftar Organisasi</h2>
+                    <input type="search" class="form-control tenant-search" wire:model.live.debounce.350ms="search" placeholder="Cari organisasi...">
                 </div>
 
                 <div class="table-responsive">
                     <table class="table align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Tenant</th>
+                                <th>Organisasi</th>
                                 <th>Path</th>
                                 <th>Storage</th>
                                 <th>Status</th>
@@ -122,7 +122,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-secondary py-5">Belum ada tenant.</td>
+                                    <td colspan="5" class="text-center text-secondary py-5">Belum ada organisasi.</td>
                                 </tr>
                             @endforelse
                         </tbody>

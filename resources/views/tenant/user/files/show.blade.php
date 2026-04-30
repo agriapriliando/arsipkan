@@ -5,7 +5,7 @@
         <div>
             <span class="eyebrow mb-3">Detail Berkas</span>
             <h1 class="h2 fw-bold mb-1">{{ $file->title ?: $file->original_name }}</h1>
-            <p class="text-secondary mb-0">Informasi lengkap berkas di tenant aktif.</p>
+            <p class="text-secondary mb-0">Informasi lengkap berkas di organisasi aktif.</p>
         </div>
 
         <div class="d-flex gap-2">
