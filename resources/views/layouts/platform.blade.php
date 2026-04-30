@@ -12,6 +12,7 @@
         <meta property="og:description" content="{{ $metaOgDescription ?? ($metaDescription ?? 'Arsipkan membantu organisasi mengelola arsip digital secara terstruktur, aman, dan mudah diakses.') }}">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:site_name" content="{{ config('app.name', 'Arsipkan') }}">
+        @include('partials.pwa.head')
         <x-layouts.assets />
         @livewireStyles
     </head>
@@ -44,7 +45,10 @@
                 @yield('content')
             </main>
         </div>
+
+        @include('partials.pwa.install-button')
         @livewireScripts
+        @include('partials.pwa.register-sw')
         <x-layouts.scripts />
     </body>
 </html>

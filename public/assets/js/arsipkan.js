@@ -98,7 +98,9 @@
   });
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initSidebar);
+    document.addEventListener("DOMContentLoaded", () => {
+      initSidebar();
+    });
   } else {
     initSidebar();
   }
