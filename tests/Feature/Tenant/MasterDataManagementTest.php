@@ -64,8 +64,23 @@ it('protects the tenant master data page for tenant managers', function () {
 
     $this->actingAs($admin, 'tenant_admin')
         ->get('/master-data-a/admin/master-data')
+        ->assertRedirect('/master-data-a/admin/master-data/categories');
+
+    $this->actingAs($admin, 'tenant_admin')
+        ->get('/master-data-a/admin/master-data/categories')
         ->assertOk()
-        ->assertSee('Kategori dan Tag');
+        ->assertSee('CRUD Kategori');
+});
+
+it('shows the separated tenant tag management page for tenant managers', function () {
+    $tenant = createTenantForMasterData('master-data-tag-page');
+    $admin = createTenantAdminForMasterData($tenant, 'admin-tag-page@test.local');
+
+    $this->actingAs($admin, 'tenant_admin')
+        ->get('/master-data-tag-page/admin/master-data/tags')
+        ->assertOk()
+        ->assertSee('CRUD Tag')
+        ->assertSee('Tambah Tag');
 });
 
 it('allows superadmins to access master data only in the entered tenant context', function () {
@@ -79,8 +94,13 @@ it('allows superadmins to access master data only in the entered tenant context'
     $this->actingAs($superadmin, 'superadmin')
         ->withSession(['superadmin_tenant_id' => $tenant->id])
         ->get('/master-data-a/admin/master-data')
+        ->assertRedirect('/master-data-a/admin/master-data/categories');
+
+    $this->actingAs($superadmin, 'superadmin')
+        ->withSession(['superadmin_tenant_id' => $tenant->id])
+        ->get('/master-data-a/admin/master-data/categories')
         ->assertOk()
-        ->assertSee('Kategori dan Tag');
+        ->assertSee('CRUD Kategori');
 });
 
 it('creates categories and tags inside the active tenant only', function () {
@@ -151,6 +171,24 @@ it('updates and deletes tenant tags', function () {
         ->call('deleteTag', $tag->id);
 
     expect(Tag::query()->whereKey($tag->id)->exists())->toBeFalse();
+});
+
+it('creates tags from the separated tag mode page component', function () {
+    $tenant = createTenantForMasterData('master-data-tag-mode');
+    $admin = createTenantAdminForMasterData($tenant, 'admin-tag-mode@test.local');
+
+    setMasterDataTenant($tenant);
+    $this->actingAs($admin, 'tenant_admin');
+
+    Livewire::test(MasterDataManager::class, ['mode' => 'tag'])
+        ->set('tagName', 'arsip-prioritas')
+        ->call('saveTag')
+        ->assertHasNoErrors();
+
+    expect(Tag::query()
+        ->where('tenant_id', $tenant->id)
+        ->where('name', 'arsip-prioritas')
+        ->exists())->toBeTrue();
 });
 
 it('keeps category and tag names unique per tenant', function () {

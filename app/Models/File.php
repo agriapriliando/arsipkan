@@ -47,6 +47,7 @@ class File extends Model
         'category_id',
         'detected_file_type',
         'final_file_type',
+        'document_year',
         'uploaded_at',
         'reviewed_at',
         'reviewed_by_admin_id',
@@ -58,6 +59,7 @@ class File extends Model
     {
         return [
             'file_size' => 'integer',
+            'document_year' => 'integer',
             'uploaded_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'deleted_at' => 'datetime',

@@ -30,6 +30,7 @@
                 default => 'guest',
             };
             $withSidebar = $layoutVariant !== 'guest';
+            $disableAppScripts = $disableAppScripts ?? request()->is('*/admin/master-data*');
         @endphp
 
         <div class="app-shell">
@@ -49,6 +50,8 @@
         @include('partials.pwa.install-button')
         @livewireScripts
         @include('partials.pwa.register-sw')
-        <x-layouts.scripts />
+        @unless($disableAppScripts)
+            <x-layouts.scripts />
+        @endunless
     </body>
 </html>

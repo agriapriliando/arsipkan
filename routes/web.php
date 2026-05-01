@@ -8,9 +8,38 @@ use App\Http\Controllers\Tenant\AdminDashboardController;
 use App\Http\Controllers\Tenant\AdminFileReviewController;
 use App\Http\Controllers\Tenant\TenantPublicCatalogController;
 use App\Http\Controllers\Tenant\UserPortalController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'home')->name('home');
+Route::get('/', function () {
+    if (Auth::guard('superadmin')->check()) {
+        return redirect()->route('superadmin.dashboard');
+    }
+
+    if (Auth::guard('tenant_admin')->check()) {
+        $admin = Auth::guard('tenant_admin')->user()?->loadMissing('tenant');
+        $tenantSlug = $admin?->tenant?->slug;
+
+        if (is_string($tenantSlug) && $tenantSlug !== '') {
+            return redirect()->route('tenant.admin.dashboard', ['tenant_slug' => $tenantSlug]);
+        }
+    }
+
+    if (Auth::guard('user_account')->check()) {
+        $account = Auth::guard('user_account')->user()?->loadMissing('tenant');
+        $tenantSlug = $account?->tenant?->slug;
+
+        if (is_string($tenantSlug) && $tenantSlug !== '') {
+            if ($account->must_change_password) {
+                return redirect()->route('tenant.password.edit', ['tenant_slug' => $tenantSlug]);
+            }
+
+            return redirect()->route('tenant.user.dashboard', ['tenant_slug' => $tenantSlug]);
+        }
+    }
+
+    return view('home');
+})->name('home');
 
 Route::prefix('superadmin')
     ->name('superadmin.')
@@ -75,7 +104,9 @@ Route::prefix('{tenant_slug}')
                 });
 
                 Route::middleware('auth.tenant_manager')->group(function (): void {
-                    Route::view('/master-data', 'tenant.admin.master-data.index')->name('master-data.index');
+                    Route::get('/master-data', fn (string $tenant_slug) => redirect()->route('tenant.admin.master-data.categories', ['tenant_slug' => $tenant_slug]))->name('master-data.index');
+                    Route::view('/master-data/categories', 'tenant.admin.master-data.categories')->name('master-data.categories');
+                    Route::view('/master-data/tags', 'tenant.admin.master-data.tags')->name('master-data.tags');
                     Route::view('/upload-links', 'tenant.admin.upload-links.index')->name('upload-links.index');
                     Route::view('/user-accounts', 'tenant.admin.user-accounts.index')->name('user-accounts.index');
                     Route::get('/files/pending', [AdminFileReviewController::class, 'pending'])->name('files.pending');
@@ -92,6 +123,7 @@ Route::prefix('{tenant_slug}')
 
                 Route::middleware('auth.tenant_admin')->group(function (): void {
                     Route::get('/', [AdminDashboardController::class, 'show'])->name('dashboard');
+                    Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
                     Route::post('/score-adjustments', [AdminDashboardController::class, 'adjust'])->name('score-adjustments.store');
                     Route::post('/logout', [TenantAdminAuthController::class, 'destroy'])->name('logout');
                 });

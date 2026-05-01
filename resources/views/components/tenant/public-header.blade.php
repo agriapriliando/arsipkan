@@ -207,6 +207,21 @@
                 >
                     Leaderboard
                 </a>
+                @auth('user_account')
+                    <a
+                        href="{{ route('tenant.user.dashboard', ['tenant_slug' => $tenant->slug]) }}"
+                        class="public-header-link is-secondary"
+                    >
+                        Dashboard User
+                    </a>
+                @else
+                    <a
+                        href="{{ route('tenant.login', ['tenant_slug' => $tenant->slug]) }}"
+                        class="public-header-link is-secondary"
+                    >
+                        Login User
+                    </a>
+                @endauth
 
                 @if($showBack && $backUrl)
                     <a href="{{ $backUrl }}" class="public-header-link is-secondary is-back-mobile-full">{{ $backLabel }}</a>

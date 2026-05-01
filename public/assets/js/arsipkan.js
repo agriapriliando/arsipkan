@@ -1,5 +1,30 @@
 (() => {
   const sidebarStorageKey = "arsipkan.sidebar";
+  let lucideRenderQueued = false;
+
+  const shouldRenderLucide = () => {
+    const path = window.location.pathname || "";
+
+    return !/\/admin\/master-data(?:\/|$)/.test(path);
+  };
+
+  const renderLucideIcons = () => {
+    if (!window.lucide || lucideRenderQueued || !shouldRenderLucide()) {
+      return;
+    }
+
+    lucideRenderQueued = true;
+
+    window.setTimeout(() => {
+      window.requestAnimationFrame(() => {
+        try {
+          window.lucide.createIcons();
+        } finally {
+          lucideRenderQueued = false;
+        }
+      });
+    }, 0);
+  };
 
   const setSidebarCollapsed = (collapsed) => {
     const sidebarCollapseToggle = document.getElementById("sidebarCollapseToggle");
@@ -14,12 +39,12 @@
     }
 
     if (sidebarCollapseIcon) {
-      sidebarCollapseIcon.setAttribute("data-lucide", collapsed ? "panel-left-open" : "panel-left-close");
+      sidebarCollapseIcon.className = collapsed
+        ? "bi bi-layout-sidebar"
+        : "bi bi-layout-sidebar-inset";
     }
 
-    if (window.lucide) {
-      window.lucide.createIcons();
-    }
+    renderLucideIcons();
   };
 
   const storedSidebarState = () => {
@@ -41,10 +66,7 @@
   const initSidebar = () => {
     setSidebarCollapsed(storedSidebarState() === "collapsed");
     closeMobileSidebar();
-
-    if (window.lucide) {
-      window.lucide.createIcons();
-    }
+    renderLucideIcons();
   };
 
   const setMobileSidebar = (open) => {
@@ -106,4 +128,6 @@
   }
 
   document.addEventListener("livewire:navigated", initSidebar);
+  document.addEventListener("livewire:init", renderLucideIcons);
+  document.addEventListener("livewire:update", renderLucideIcons);
 })();

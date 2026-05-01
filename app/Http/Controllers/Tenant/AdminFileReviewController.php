@@ -51,6 +51,7 @@ class AdminFileReviewController extends Controller
             'visibility' => ['nullable', Rule::in([
                 File::VISIBILITY_PUBLIC,
                 File::VISIBILITY_INTERNAL,
+                File::VISIBILITY_PRIVATE,
             ])],
             'category_id' => [
                 'nullable',
@@ -152,6 +153,13 @@ class AdminFileReviewController extends Controller
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->get(),
+            'finalFileTypeSuggestions' => File::query()
+                ->where('tenant_id', $tenant->id)
+                ->whereNotNull('final_file_type')
+                ->where('final_file_type', '!=', '')
+                ->orderBy('final_file_type')
+                ->distinct()
+                ->pluck('final_file_type'),
             'tags' => Tag::query()
                 ->where('tenant_id', $tenant->id)
                 ->orderBy('name')
@@ -207,6 +215,7 @@ class AdminFileReviewController extends Controller
                 Rule::exists('tags', 'id')->where(fn ($query) => $query->where('tenant_id', $tenant->id)),
             ],
             'final_file_type' => ['nullable', 'string', 'max:100'],
+            'document_year' => ['required', 'integer', 'digits:4', 'between:1900,2100'],
             'status' => ['required', Rule::in([
                 File::STATUS_PENDING_REVIEW,
                 File::STATUS_VALID,
@@ -217,6 +226,7 @@ class AdminFileReviewController extends Controller
             'category_id' => 'kategori',
             'tag_ids' => 'tag',
             'final_file_type' => 'tipe file final',
+            'document_year' => 'tahun berkas',
             'status' => 'status review',
         ]);
 
@@ -226,6 +236,7 @@ class AdminFileReviewController extends Controller
             'visibility' => $validated['visibility'],
             'category_id' => $validated['category_id'] ?: null,
             'final_file_type' => $validated['final_file_type'] ?: null,
+            'document_year' => (int) $validated['document_year'],
             'status' => $validated['status'],
             'reviewed_at' => now(),
             'reviewed_by_admin_id' => $manager->id,
@@ -284,9 +295,11 @@ class AdminFileReviewController extends Controller
 
         abort_unless($manager->can('restore', $archivedFile), 403);
 
+        $fileLabel = $archivedFile->title ?: $archivedFile->original_name;
+
         $archivedFile->restore();
 
-        request()->session()->flash('status', 'File berhasil dipulihkan.');
+        request()->session()->flash('status', 'File "'.$fileLabel.'" berhasil dipulihkan.');
 
         return new RedirectResponse(route('tenant.admin.files.deleted', ['tenant_slug' => $tenant->slug]));
     }
@@ -302,9 +315,11 @@ class AdminFileReviewController extends Controller
 
         abort_unless($manager->can('archive', $archivedFile), 403);
 
+        $fileLabel = $archivedFile->title ?: $archivedFile->original_name;
+
         $archivedFile->delete();
 
-        request()->session()->flash('status', 'File berhasil dipindahkan ke berkas terhapus.');
+        request()->session()->flash('status', 'File "'.$fileLabel.'" berhasil dipindahkan ke berkas terhapus.');
 
         return new RedirectResponse(route('tenant.admin.files.index', ['tenant_slug' => $tenant->slug]));
     }
@@ -321,6 +336,8 @@ class AdminFileReviewController extends Controller
 
         abort_unless($manager->can('forceDelete', $archivedFile), 403);
 
+        $fileLabel = $archivedFile->title ?: $archivedFile->original_name;
+
         if ($archivedFile->stored_name !== '') {
             Storage::disk('local')->delete($archivedFile->stored_name);
         }
@@ -333,7 +350,7 @@ class AdminFileReviewController extends Controller
 
         $archivedFile->forceDelete();
 
-        request()->session()->flash('status', 'File berhasil dihapus permanen.');
+        request()->session()->flash('status', 'File "'.$fileLabel.'" berhasil dihapus permanen.');
 
         return new RedirectResponse(route('tenant.admin.files.deleted', ['tenant_slug' => $tenant->slug]));
     }

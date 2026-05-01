@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminUser;
+use App\Models\File;
 use App\Models\GuestUploader;
 use App\Models\Tenant;
+use App\Models\UserAccount;
 use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
@@ -23,9 +25,20 @@ class AdminDashboardController extends Controller
 
         return view('tenant.admin.dashboard', [
             'tenant' => $tenant,
-            'storageUsagePercent' => $tenant->storageUsagePercent(),
-            'storageRemainingBytes' => $tenant->storageRemainingBytes(),
-            'storageNearLimit' => $tenant->isStorageNearLimit(),
+            'pendingReviewCount' => File::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('status', File::STATUS_PENDING_REVIEW)
+                ->count(),
+            'activeFileCount' => File::query()
+                ->where('tenant_id', $tenant->id)
+                ->count(),
+            'deletedFileCount' => File::onlyTrashed()
+                ->where('tenant_id', $tenant->id)
+                ->count(),
+            'activeUploaderAccountCount' => UserAccount::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('is_active', true)
+                ->count(),
             'weeklyLeaderboard' => $scoreService->leaderboardForTenant(
                 $tenant,
                 CarbonImmutable::now()->startOfWeek(),
@@ -36,6 +49,18 @@ class AdminDashboardController extends Controller
                 CarbonImmutable::now()->startOfMonth(),
                 CarbonImmutable::now()->endOfMonth(),
             ),
+        ]);
+    }
+
+    public function settings(TenantContext $tenantContext, ScoreService $scoreService): View
+    {
+        $tenant = $this->currentTenant($tenantContext);
+
+        return view('tenant.admin.settings', [
+            'tenant' => $tenant,
+            'storageUsagePercent' => $tenant->storageUsagePercent(),
+            'storageRemainingBytes' => $tenant->storageRemainingBytes(),
+            'storageNearLimit' => $tenant->isStorageNearLimit(),
             'guestUploaders' => GuestUploader::query()
                 ->where('tenant_id', $tenant->id)
                 ->orderBy('name')
@@ -67,7 +92,7 @@ class AdminDashboardController extends Controller
         $scoreService->createAdjustment($uploader, $manager, (float) $validated['delta']);
 
         return redirect()
-            ->route('tenant.admin.dashboard', ['tenant_slug' => $tenant->slug])
+            ->route('tenant.admin.settings', ['tenant_slug' => $tenant->slug])
             ->with('status', 'Penyesuaian skor berhasil disimpan.');
     }
 

@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Upload Berkas - {{ $currentTenant->name ?? config('app.name', 'Arsipkan') }}</title>
         <link href="{{ asset('assets/vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+        <script src="{{ asset('assets/vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
         <script src="{{ asset('assets/vendor/lucide/lucide.min.js') }}"></script>
         <style>
             :root {
@@ -151,6 +152,32 @@
                 background: #f1f5f9;
                 border-radius: 10px;
                 font-size: 0.875rem;
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
+
+            .file-info > i,
+            .file-info > button {
+                flex: 0 0 auto;
+            }
+
+            .file-info .flex-grow-1 {
+                flex: 1 1 0;
+                width: 0;
+                min-width: 0;
+                overflow: hidden;
+            }
+
+            .file-info .file-name-label {
+                display: block;
+                width: 100%;
+                max-width: 100%;
+                white-space: normal;
+                overflow-wrap: anywhere;
+                word-break: break-word;
             }
 
             @keyframes move {
@@ -379,6 +406,26 @@
                 animation-delay: -19s;
                 transform-origin: 15vw -19vh;
                 box-shadow: -40vmin 0 5.212065920802415vmin currentColor;
+            }
+
+            @media (max-width: 575.98px) {
+                .upload-container {
+                    padding: 1.5rem;
+                }
+
+                .file-info {
+                    align-items: flex-start;
+                    gap: 0.6rem;
+                }
+
+                .file-info .file-name-label {
+                    font-size: 0.82rem;
+                }
+
+                .file-info button {
+                    flex-shrink: 0;
+                    margin-top: 0.1rem;
+                }
             }
         </style>
         @livewireStyles

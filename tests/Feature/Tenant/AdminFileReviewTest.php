@@ -198,6 +198,41 @@ it('filters the all files page by visibility and category for tenant admins', fu
         ->assertDontSee('public-kepegawaian.pdf');
 });
 
+it('shows and filters private files for tenant admins', function () {
+    $tenant = createTenantForAdminFiles();
+    $admin = createTenantAdminForAdminFiles($tenant);
+    $uploader = createGuestUploaderForAdminFiles($tenant);
+
+    $privateFile = createFileForAdminFiles($tenant, $uploader, [
+        'original_name' => 'rahasia-direksi.pdf',
+        'visibility' => File::VISIBILITY_PRIVATE,
+        'status' => File::STATUS_VALID,
+    ]);
+    createFileForAdminFiles($tenant, $uploader, [
+        'original_name' => 'umum-organisasi.pdf',
+        'visibility' => File::VISIBILITY_PUBLIC,
+        'status' => File::STATUS_VALID,
+    ]);
+
+    $this->actingAs($admin, 'tenant_admin')
+        ->get('/admin-files-a/admin/files')
+        ->assertOk()
+        ->assertSee('rahasia-direksi.pdf')
+        ->assertSee('private');
+
+    $this->actingAs($admin, 'tenant_admin')
+        ->get('/admin-files-a/admin/files?visibility=private')
+        ->assertOk()
+        ->assertSee('rahasia-direksi.pdf')
+        ->assertDontSee('umum-organisasi.pdf');
+
+    $this->actingAs($admin, 'tenant_admin')
+        ->get('/admin-files-a/admin/files/'.$privateFile->id)
+        ->assertOk()
+        ->assertSee('rahasia-direksi.pdf')
+        ->assertSee('Private');
+});
+
 it('searches files on the all files page for tenant admins', function () {
     $tenant = createTenantForAdminFiles();
     $admin = createTenantAdminForAdminFiles($tenant);
@@ -247,6 +282,7 @@ it('allows tenant admins to review file metadata and change status', function ()
             'category_id' => $category->id,
             'tag_ids' => [$tagA->id, $tagB->id],
             'final_file_type' => 'laporan',
+            'document_year' => 2024,
             'status' => File::STATUS_VALID,
         ])
         ->assertRedirect('/admin-files-a/admin/files/'.$file->id);
@@ -256,6 +292,7 @@ it('allows tenant admins to review file metadata and change status', function ()
         ->and($file->fresh()->visibility)->toBe(File::VISIBILITY_INTERNAL)
         ->and($file->fresh()->category_id)->toBe($category->id)
         ->and($file->fresh()->final_file_type)->toBe('laporan')
+        ->and($file->fresh()->document_year)->toBe(2024)
         ->and($file->fresh()->status)->toBe(File::STATUS_VALID)
         ->and($file->fresh()->reviewed_by_admin_id)->toBe($admin->id)
         ->and($file->fresh()->reviewed_at)->not()->toBeNull()
@@ -288,6 +325,7 @@ it('shows and allows changing file visibility from the tenant admin detail page'
             'category_id' => $file->category_id,
             'tag_ids' => [],
             'final_file_type' => $file->final_file_type,
+            'document_year' => $file->document_year ?? now()->year,
             'status' => File::STATUS_VALID,
         ])
         ->assertRedirect('/admin-files-a/admin/files/'.$file->id);

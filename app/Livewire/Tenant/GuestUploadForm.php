@@ -41,6 +41,10 @@ class GuestUploadForm extends Component
 
     public ?string $successMessage = null;
 
+    public bool $hasStoredIdentity = false;
+
+    public bool $showIdentityFields = true;
+
     public function mount(string $code): void
     {
         $tenant = $this->currentTenant();
@@ -91,11 +95,17 @@ class GuestUploadForm extends Component
                 'uploadedFile' => [
                     'required',
                     'file',
-                    'max:102400',
+                    'max:20480',
                     'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,txt',
                     'mimetypes:text/plain,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/jpeg,image/png',
                 ],
-            ], [], [
+            ], [
+                'uploadedFile.required' => 'Silakan pilih file yang ingin diunggah.',
+                'uploadedFile.file' => 'File yang dipilih tidak valid.',
+                'uploadedFile.max' => 'Ukuran file terlalu besar. Maksimal 20 MB per file.',
+                'uploadedFile.extensions' => 'Format file tidak didukung. Gunakan PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, atau TXT.',
+                'uploadedFile.mimetypes' => 'Tipe file tidak didukung. Gunakan file dokumen atau gambar yang diizinkan.',
+            ], [
                 ...$this->identityAttributes(),
                 'uploadedFile' => 'file',
             ]);
@@ -167,6 +177,7 @@ class GuestUploadForm extends Component
                 'status' => $validated['visibility'] === ArchivedFile::VISIBILITY_PUBLIC
                     ? ArchivedFile::STATUS_PENDING_REVIEW
                     : ArchivedFile::STATUS_VALID,
+                'document_year' => now()->year,
                 'uploaded_at' => now(),
             ]);
 
@@ -192,6 +203,8 @@ class GuestUploadForm extends Component
 
         Cookie::queue($this->guestTokenCookieName($tenant), $guestToken, 60 * 24 * 365);
         $this->queueUploaderIdentityCookie($tenant, $validated['name'], $validated['phoneNumber']);
+        $this->hasStoredIdentity = true;
+        $this->showIdentityFields = false;
 
         $this->reset(['uploadedFile', 'uploadedFileName']);
         $this->successMessage = 'File berhasil diunggah.';
@@ -201,6 +214,7 @@ class GuestUploadForm extends Component
     public function updatedUploadedFile(): void
     {
         $this->uploadedFileName = $this->uploadedFile?->getClientOriginalName() ?? '';
+        $this->resetErrorBag('uploadedFile');
     }
 
     public function clearUploadedFile(): void
@@ -222,6 +236,11 @@ class GuestUploadForm extends Component
     public function updatedVisibility(): void
     {
         $this->persistUploaderIdentity();
+    }
+
+    public function toggleIdentityFields(): void
+    {
+        $this->showIdentityFields = ! $this->showIdentityFields;
     }
 
     protected function currentTenant(): Tenant
@@ -300,6 +319,8 @@ class GuestUploadForm extends Component
             ], true)
                 ? (string) $identity['visibility']
                 : ArchivedFile::VISIBILITY_PRIVATE;
+            $this->hasStoredIdentity = $this->name !== '' && $this->phoneNumber !== '';
+            $this->showIdentityFields = ! $this->hasStoredIdentity;
 
             return;
         }
@@ -318,6 +339,8 @@ class GuestUploadForm extends Component
         if ($guestUploader instanceof GuestUploader) {
             $this->name = $guestUploader->name;
             $this->phoneNumber = $guestUploader->phone_number;
+            $this->hasStoredIdentity = $this->name !== '' && $this->phoneNumber !== '';
+            $this->showIdentityFields = ! $this->hasStoredIdentity;
         }
     }
 

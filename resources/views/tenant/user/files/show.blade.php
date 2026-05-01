@@ -45,6 +45,10 @@
                         <div class="fw-semibold">{{ $file->final_file_type ?? $file->mime_type ?? '-' }}</div>
                     </div>
                     <div class="col-12 col-md-6">
+                        <div class="muted-label mb-1">Tahun Berkas</div>
+                        <div class="fw-semibold">{{ $file->document_year ?? '-' }}</div>
+                    </div>
+                    <div class="col-12 col-md-6">
                         <div class="muted-label mb-1">Ukuran</div>
                         <div class="fw-semibold">{{ number_format(($file->file_size ?? 0) / 1024, 1) }} KB</div>
                     </div>

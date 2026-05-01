@@ -26,7 +26,7 @@ class TenantAdminAuthController extends Controller
             'identifierName' => 'email',
             'identifierLabel' => 'Email',
             'identifierPlaceholder' => 'admin@demo-dinas.test',
-            'rememberDefault' => false,
+            'rememberDefault' => true,
         ]);
     }
 

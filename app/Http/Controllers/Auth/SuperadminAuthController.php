@@ -25,7 +25,7 @@ class SuperadminAuthController extends Controller
             'identifierName' => 'email',
             'identifierLabel' => 'Email',
             'identifierPlaceholder' => 'superadmin@arsipkan.test',
-            'rememberDefault' => false,
+            'rememberDefault' => true,
         ]);
     }
 

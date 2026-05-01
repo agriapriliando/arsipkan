@@ -22,7 +22,7 @@ class UserAccountAuthController extends Controller
         return view('auth.login', [
             'title' => 'Login User Uploader',
             'heading' => 'Login User Uploader',
-            'description' => 'Masuk ke portal berkas '.$tenantContext->tenant()?->name.'.',
+            'description' => 'Masuk ke portal berkas '.$tenantContext->tenant()?->name.'. Hubungi admin organisasi Anda jika Anda tidak memiliki akun.',
             'action' => route('tenant.login.store', ['tenant_slug' => request()->route('tenant_slug')]),
             'identifierType' => 'tel',
             'identifierName' => 'phone_number',

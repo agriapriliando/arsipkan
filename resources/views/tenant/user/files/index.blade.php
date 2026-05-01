@@ -1,6 +1,64 @@
 @extends('layouts.platform')
 
 @section('content')
+    <div
+        x-data="{
+            confirmOpen: false,
+            confirmAction: '#',
+            confirmMethod: 'DELETE',
+            confirmTitle: 'Konfirmasi tindakan',
+            confirmMessage: 'Tindakan ini akan dijalankan.',
+            confirmButton: 'Lanjutkan',
+            openDeleteModal(action, fileLabel) {
+                this.confirmAction = action;
+                this.confirmMethod = 'DELETE';
+                this.confirmTitle = 'Pindahkan ke Arsip Terhapus';
+                this.confirmMessage = `File &quot;${fileLabel}&quot; akan dipindahkan ke arsip terhapus.`;
+                this.confirmButton = 'Ya, pindahkan';
+                this.confirmOpen = true;
+            }
+        }"
+    >
+    <style>
+        .app-action-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(3px);
+            z-index: 1050;
+        }
+
+        .app-action-modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 1051;
+        }
+
+        .app-action-modal-card {
+            width: min(100%, 28rem);
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+            padding: 1.5rem;
+        }
+
+        .app-action-modal-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+            color: #be123c;
+            font-size: 1.35rem;
+        }
+    </style>
+
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
             <span class="eyebrow mb-3">{{ $mode === 'mine' ? 'Berkas Saya' : $heading }}</span>
@@ -71,7 +129,11 @@
                                         <form method="POST" action="{{ route('tenant.user.files.destroy', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold" onclick="return confirm('Pindahkan file ini ke arsip terhapus?')">Hapus</button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-danger fw-semibold"
+                                                @click.prevent="openDeleteModal('{{ route('tenant.user.files.destroy', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}', @js($file->title ?: $file->original_name))"
+                                            >Hapus</button>
                                         </form>
                                     @endif
                                 </div>
@@ -86,4 +148,29 @@
             </table>
         </div>
     </section>
+
+    <template x-if="confirmOpen">
+        <div>
+            <div class="app-action-modal-backdrop" @click="confirmOpen = false"></div>
+            <div class="app-action-modal">
+                <div class="app-action-modal-card">
+                    <div class="text-center">
+                        <div class="app-action-modal-icon mx-auto mb-3">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <h2 class="h4 fw-bold mb-2" x-text="confirmTitle"></h2>
+                        <p class="text-secondary mb-4" x-html="confirmMessage"></p>
+                    </div>
+
+                    <form :action="confirmAction" method="POST" class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                        @csrf
+                        <input type="hidden" name="_method" :value="confirmMethod">
+                        <button type="button" class="btn btn-outline-secondary px-4" @click="confirmOpen = false">Batal</button>
+                        <button type="submit" class="btn btn-danger px-4" x-text="confirmButton"></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+    </div>
 @endsection

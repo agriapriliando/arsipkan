@@ -28,11 +28,11 @@
 <header class="top-header">
     <div class="d-flex align-items-center gap-3">
         <button type="button" class="mobile-toggle" id="mobileToggle" aria-label="Buka sidebar" aria-controls="sidebar" aria-expanded="false">
-            <i data-lucide="menu"></i>
+            <i class="bi bi-list"></i>
         </button>
         <div class="search-box">
-            <i data-lucide="search"></i>
-            <input type="text" class="form-control shadow-none" placeholder="Cari berkas atau uploader...">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control shadow-none" placeholder="Belum tersedia" disabled>
         </div>
     </div>
 
@@ -42,7 +42,7 @@
         @endif
 
         <button type="button" class="btn p-2 text-secondary position-relative">
-            <i data-lucide="bell"></i>
+            <i class="bi bi-bell"></i>
             <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
         </button>
         <div class="vr mx-2 d-none d-sm-block" style="height: 30px"></div>

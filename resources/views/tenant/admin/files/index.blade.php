@@ -1,6 +1,143 @@
 @extends('layouts.platform')
 
 @section('content')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterForm = document.getElementById('adminFileFilterForm');
+            let searchDebounceTimer = null;
+
+            if (filterForm) {
+                const autoSubmitFields = filterForm.querySelectorAll('[data-auto-submit="change"]');
+                const delayedSearchField = filterForm.querySelector('[data-auto-submit="search"]');
+
+                autoSubmitFields.forEach((field) => {
+                    field.addEventListener('change', () => {
+                        filterForm.requestSubmit();
+                    });
+                });
+
+                if (delayedSearchField) {
+                    delayedSearchField.addEventListener('input', () => {
+                        window.clearTimeout(searchDebounceTimer);
+                        searchDebounceTimer = window.setTimeout(() => {
+                            filterForm.requestSubmit();
+                        }, 700);
+                    });
+                }
+            }
+
+            const confirmModalElement = document.getElementById('fileActionConfirmModal');
+            const confirmForm = document.getElementById('fileActionConfirmForm');
+            const confirmFormMethod = document.getElementById('fileActionConfirmFormMethod');
+            const confirmTitle = document.getElementById('fileActionConfirmTitle');
+            const confirmMessage = document.getElementById('fileActionConfirmMessage');
+            const confirmButton = document.getElementById('fileActionConfirmButton');
+
+            if (!confirmModalElement || !confirmForm || !confirmFormMethod || !window.bootstrap) {
+                return;
+            }
+
+            const confirmModal = new window.bootstrap.Modal(confirmModalElement);
+
+            document.querySelectorAll('[data-file-action-confirm]').forEach((trigger) => {
+                trigger.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    confirmForm.setAttribute('action', trigger.dataset.formAction || '#');
+                    confirmFormMethod.value = trigger.dataset.formMethod || 'DELETE';
+                    confirmTitle.textContent = trigger.dataset.confirmTitle || 'Konfirmasi tindakan';
+                    confirmMessage.textContent = trigger.dataset.confirmMessage || 'Tindakan ini akan dijalankan.';
+                    confirmButton.textContent = trigger.dataset.confirmButton || 'Lanjutkan';
+                    confirmButton.className = `btn ${trigger.dataset.confirmButtonClass || 'btn-danger'}`;
+
+                    confirmModal.show();
+                });
+            });
+        });
+    </script>
+    <style>
+        .admin-file-filter-panel {
+            padding: 1rem 1.1rem;
+        }
+
+        .admin-file-filter-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .admin-file-filter-field {
+            min-width: 0;
+        }
+
+        .admin-file-filter-field .form-label {
+            margin-bottom: 0.45rem;
+            font-size: 0.92rem;
+        }
+
+        .admin-file-filter-field .form-control,
+        .admin-file-filter-field .form-select {
+            height: 2.9rem;
+            border-radius: 0.9rem;
+        }
+
+        .admin-file-filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            height: 100%;
+        }
+
+        .admin-file-filter-actions .btn {
+            min-width: 6.5rem;
+            height: 2.9rem;
+            border-radius: 0.9rem;
+        }
+
+        .admin-file-filter-hint {
+            margin-top: 0.45rem;
+            font-size: 0.8rem;
+        }
+
+        .file-action-confirm-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+            color: #be123c;
+            font-size: 1.35rem;
+        }
+
+        @media (max-width: 991.98px) {
+            .admin-file-filter-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .admin-file-filter-panel {
+                padding: 0.95rem;
+            }
+
+            .admin-file-filter-grid {
+                grid-template-columns: 1fr;
+                gap: 0.85rem;
+            }
+
+            .admin-file-filter-actions {
+                justify-content: stretch;
+            }
+
+            .admin-file-filter-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
         <div>
             <span class="eyebrow mb-3">Manajemen File</span>
@@ -20,39 +157,45 @@
     @endif
 
     @if($mode === 'all')
-        <section class="panel-box p-4 mb-4">
-            <form method="GET" action="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="row g-3 align-items-end">
-                <div class="col-md-4">
+        <section class="panel-box admin-file-filter-panel mb-4">
+            <form
+                id="adminFileFilterForm"
+                method="GET"
+                action="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}"
+                class="admin-file-filter-grid"
+            >
+                <div class="admin-file-filter-field">
                     <label for="search" class="form-label fw-semibold">Pencarian</label>
                     <input
                         id="search"
                         type="text"
                         name="search"
+                        data-auto-submit="search"
                         value="{{ $filters['search'] ?? '' }}"
                         class="form-control"
                         placeholder="Cari nama file, uploader, HP, atau kode link"
                     >
                 </div>
-                <div class="col-md-3">
+                <div class="admin-file-filter-field">
                     <label for="visibility" class="form-label fw-semibold">Visibilitas</label>
-                    <select id="visibility" name="visibility" class="form-select">
+                    <select id="visibility" name="visibility" class="form-select" data-auto-submit="change">
                         <option value="">Semua visibilitas</option>
                         <option value="public" @selected(($filters['visibility'] ?? '') === 'public')>public</option>
                         <option value="internal" @selected(($filters['visibility'] ?? '') === 'internal')>internal</option>
+                        <option value="private" @selected(($filters['visibility'] ?? '') === 'private')>private</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="admin-file-filter-field">
                     <label for="category_id" class="form-label fw-semibold">Kategori</label>
-                    <select id="category_id" name="category_id" class="form-select">
+                    <select id="category_id" name="category_id" class="form-select" data-auto-submit="change">
                         <option value="">Semua kategori</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" @selected(($filters['category_id'] ?? '') === (string) $category->id)>{{ $category->name }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="admin-file-filter-actions">
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-brand">Terapkan Filter</button>
                         <a href="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Reset</a>
                     </div>
                 </div>
@@ -85,7 +228,11 @@
                                 <div class="text-secondary small">{{ $file->guestUploader?->phone_number ?? '-' }}</div>
                             </td>
                             <td>
-                                <span class="status-pill {{ $file->visibility === 'public' ? 'status-active' : 'status-inactive' }}">
+                                <span class="status-pill {{
+                                    $file->visibility === 'public'
+                                        ? 'status-active'
+                                        : ($file->visibility === 'private' ? 'status-pending' : 'status-inactive')
+                                }}">
                                     {{ $file->visibility }}
                                 </span>
                             </td>
@@ -110,19 +257,49 @@
                                         <form method="POST" action="{{ route('tenant.admin.files.archive', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold" onclick="return confirm('Pindahkan file ini ke berkas terhapus?')">Hapus</button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-danger fw-semibold"
+                                                data-file-action-confirm
+                                                data-form-action="{{ route('tenant.admin.files.archive', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
+                                                data-form-method="DELETE"
+                                                data-confirm-title="Pindahkan ke Berkas Terhapus"
+                                                data-confirm-message="File ini akan dipindahkan ke daftar berkas terhapus dan masih bisa dipulihkan nanti."
+                                                data-confirm-button="Ya, pindahkan"
+                                                data-confirm-button-class="btn-danger"
+                                            >Hapus</button>
                                         </form>
                                     @endif
                                     @if($mode === 'deleted')
                                         <form method="POST" action="{{ route('tenant.admin.files.restore', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="btn btn-sm btn-outline-success fw-semibold" onclick="return confirm('Pulihkan file ini ke daftar aktif?')">Pulihkan</button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-success fw-semibold"
+                                                data-file-action-confirm
+                                                data-form-action="{{ route('tenant.admin.files.restore', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
+                                                data-form-method="PATCH"
+                                                data-confirm-title="Pulihkan File"
+                                                data-confirm-message="File ini akan dikembalikan ke daftar aktif dan dapat dikelola kembali."
+                                                data-confirm-button="Ya, pulihkan"
+                                                data-confirm-button-class="btn-success"
+                                            >Pulihkan</button>
                                         </form>
                                         <form method="POST" action="{{ route('tenant.admin.files.destroy', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger fw-semibold" onclick="return confirm('Hapus permanen file ini? Tindakan ini tidak dapat dibatalkan.')">Hapus Permanen</button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-danger fw-semibold"
+                                                data-file-action-confirm
+                                                data-form-action="{{ route('tenant.admin.files.destroy', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
+                                                data-form-method="DELETE"
+                                                data-confirm-title="Hapus Permanen File"
+                                                data-confirm-message="Tindakan ini tidak dapat dibatalkan. File akan dihapus permanen dari sistem."
+                                                data-confirm-button="Ya, hapus permanen"
+                                                data-confirm-button-class="btn-danger"
+                                            >Hapus Permanen</button>
                                         </form>
                                     @endif
                                 </div>
@@ -143,4 +320,25 @@
             </div>
         @endif
     </section>
+
+    <div class="modal fade" id="fileActionConfirmModal" tabindex="-1" aria-labelledby="fileActionConfirmTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem;">
+                <div class="modal-body p-4 p-lg-4 text-center">
+                    <div class="file-action-confirm-icon mx-auto mb-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <h2 id="fileActionConfirmTitle" class="h4 fw-bold mb-2">Konfirmasi tindakan</h2>
+                    <p id="fileActionConfirmMessage" class="text-secondary mb-4">Tindakan ini akan dijalankan.</p>
+
+                    <form id="fileActionConfirmForm" method="POST" class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                        @csrf
+                        <input id="fileActionConfirmFormMethod" type="hidden" name="_method" value="DELETE">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                        <button id="fileActionConfirmButton" type="submit" class="btn btn-danger px-4">Lanjutkan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection

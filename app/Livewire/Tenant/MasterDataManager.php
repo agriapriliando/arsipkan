@@ -16,6 +16,8 @@ use Livewire\Component;
 
 class MasterDataManager extends Component
 {
+    public string $mode = 'category';
+
     public ?int $tenantId = null;
 
     public ?int $editingCategoryId = null;
@@ -32,8 +34,11 @@ class MasterDataManager extends Component
 
     public string $tagName = '';
 
-    public function mount(): void
+    public function mount(string $mode = 'category'): void
     {
+        abort_unless(in_array($mode, ['category', 'tag'], true), 404);
+
+        $this->mode = $mode;
         $this->tenantId = $this->currentTenantFromContext()->id;
     }
 
@@ -42,14 +47,18 @@ class MasterDataManager extends Component
         $tenant = $this->authorizeTenantManager();
 
         return view('livewire.tenant.master-data-manager', [
-            'categories' => Category::query()
-                ->forTenant($tenant)
-                ->orderBy('name')
-                ->get(),
-            'tags' => Tag::query()
-                ->forTenant($tenant)
-                ->orderBy('name')
-                ->get(),
+            'categories' => $this->mode === 'category'
+                ? Category::query()
+                    ->forTenant($tenant)
+                    ->orderBy('name')
+                    ->get()
+                : collect(),
+            'tags' => $this->mode === 'tag'
+                ? Tag::query()
+                    ->forTenant($tenant)
+                    ->orderBy('name')
+                    ->get()
+                : collect(),
         ]);
     }
 
@@ -272,7 +281,9 @@ class MasterDataManager extends Component
     protected function authorizeTenantManager(): Tenant
     {
         $tenant = $this->currentTenant();
-        abort_unless($this->currentUser()?->can('create', Category::class), 403);
+        $abilityTarget = $this->mode === 'tag' ? Tag::class : Category::class;
+
+        abort_unless($this->currentUser()?->can('create', $abilityTarget), 403);
 
         return $tenant;
     }
