@@ -136,6 +136,7 @@ it('shows only owned files and valid internal tenant files in the right pages', 
         ->get('/portal-a/my-files')
         ->assertOk()
         ->assertSee('owned.pdf')
+        ->assertSee('Pencarian')
         ->assertDontSee('peer-internal.pdf');
 
     $this->actingAs($account, 'user_account')
@@ -145,12 +146,89 @@ it('shows only owned files and valid internal tenant files in the right pages', 
         ->assertSee('peer-public.pdf')
         ->assertSee('internal')
         ->assertSee('public')
+        ->assertSee('Pencarian')
         ->assertDontSee('peer-private.pdf');
 
     $this->actingAs($account, 'user_account')
         ->get('/portal-a/files/'.$ownedFile->id)
         ->assertOk()
         ->assertSee('owned.pdf');
+});
+
+it('supports search and pagination on my files page', function () {
+    $tenant = createTenantForUserPortal();
+    $account = createUserForUserPortal($tenant, '08123456789', 'Owner Portal');
+    $peer = createUserForUserPortal($tenant, '08111111111', 'Peer Portal');
+
+    foreach (range(1, 11) as $index) {
+        createFileForUserPortal($tenant, $account, [
+            'original_name' => sprintf('my-doc-%02d.pdf', $index),
+            'title' => 'Dokumen saya '.$index,
+            'uploaded_at' => now()->subMinutes($index),
+        ]);
+    }
+
+    createFileForUserPortal($tenant, $account, [
+        'original_name' => 'laporan-pribadi-2026.pdf',
+        'title' => 'Laporan Pribadi 2026',
+        'uploaded_at' => now()->addMinute(),
+    ]);
+
+    createFileForUserPortal($tenant, $peer, [
+        'original_name' => 'peer-hidden.pdf',
+        'title' => 'Peer Hidden',
+        'uploaded_at' => now()->addSeconds(30),
+    ]);
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/my-files?search=laporan-pribadi-2026')
+        ->assertOk()
+        ->assertSee('laporan-pribadi-2026.pdf')
+        ->assertDontSee('my-doc-01.pdf')
+        ->assertDontSee('peer-hidden.pdf');
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/my-files')
+        ->assertOk()
+        ->assertSee('my-doc-01.pdf')
+        ->assertSee('?page=2')
+        ->assertDontSee('peer-hidden.pdf');
+});
+
+it('supports search and pagination on tenant files page', function () {
+    $tenant = createTenantForUserPortal();
+    $account = createUserForUserPortal($tenant, '08123456789', 'Owner Portal');
+    $peer = createUserForUserPortal($tenant, '08111111111', 'Peer Portal');
+
+    foreach (range(1, 11) as $index) {
+        createFileForUserPortal($tenant, $peer, [
+            'original_name' => sprintf('tenant-doc-%02d.pdf', $index),
+            'title' => 'Dokumen tenant '.$index,
+            'visibility' => File::VISIBILITY_INTERNAL,
+            'status' => File::STATUS_VALID,
+            'uploaded_at' => now()->subMinutes($index),
+        ]);
+    }
+
+    createFileForUserPortal($tenant, $peer, [
+        'original_name' => 'laporan-keuangan-2026.pdf',
+        'title' => 'Laporan Keuangan 2026',
+        'visibility' => File::VISIBILITY_PUBLIC,
+        'status' => File::STATUS_VALID,
+        'uploaded_at' => now()->addMinute(),
+    ]);
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/tenant-files?search=laporan-keuangan-2026')
+        ->assertOk()
+        ->assertSee('laporan-keuangan-2026.pdf')
+        ->assertDontSee('tenant-doc-01.pdf');
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/tenant-files')
+        ->assertOk()
+        ->assertSee('tenant-doc-01.pdf')
+        ->assertSee('?page=2');
 });
 
 it('allows user uploaders to soft delete only their own files', function () {

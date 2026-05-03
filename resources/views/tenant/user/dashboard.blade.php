@@ -53,12 +53,6 @@
         </div>
     </div>
 
-
-    <section class="panel-box p-4 mt-4">
-        <h2 class="h5 fw-bold mb-2">Cara Upload</h2>
-        <p class="text-secondary mb-0">Sebagai user uploader, Anda tidak mengunggah file dari portal ini. Minta atau gunakan link upload organisasi yang dibagikan admin, lalu unggah file melalui halaman link tersebut.</p>
-    </section>
-
     <section class="panel-box p-4 mt-4">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
             <div>

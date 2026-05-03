@@ -20,6 +20,41 @@
         }"
     >
     <style>
+        .tenant-file-filter-panel {
+            padding: 1rem 1.1rem;
+        }
+
+        .tenant-file-filter-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .tenant-file-filter-field .form-label {
+            margin-bottom: 0.45rem;
+            font-size: 0.92rem;
+        }
+
+        .tenant-file-filter-field .form-control {
+            height: 2.9rem;
+            border-radius: 0.9rem;
+        }
+
+        .tenant-file-filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            gap: 0.75rem;
+            height: 100%;
+        }
+
+        .tenant-file-filter-actions .btn {
+            min-width: 6.5rem;
+            height: 2.9rem;
+            border-radius: 0.9rem;
+        }
+
         .app-action-modal-backdrop {
             position: fixed;
             inset: 0;
@@ -57,6 +92,26 @@
             color: #be123c;
             font-size: 1.35rem;
         }
+
+        @media (max-width: 575.98px) {
+            .tenant-file-filter-panel {
+                padding: 0.95rem;
+            }
+
+            .tenant-file-filter-grid {
+                grid-template-columns: 1fr;
+                gap: 0.85rem;
+            }
+
+            .tenant-file-filter-actions {
+                justify-content: stretch;
+            }
+
+            .tenant-file-filter-actions .btn,
+            .tenant-file-filter-actions a {
+                width: 100%;
+            }
+        }
     </style>
 
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
@@ -73,6 +128,32 @@
 
     @if(session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
+    @endif
+
+    @if(in_array($mode, ['mine', 'tenant'], true))
+        <section class="panel-box tenant-file-filter-panel mb-4">
+            <form
+                method="GET"
+                action="{{ route($mode === 'mine' ? 'tenant.user.files.mine' : 'tenant.user.files.tenant', ['tenant_slug' => request()->route('tenant_slug')]) }}"
+                class="tenant-file-filter-grid"
+            >
+                <div class="tenant-file-filter-field">
+                    <label for="search" class="form-label fw-semibold">Pencarian</label>
+                    <input
+                        id="search"
+                        type="search"
+                        name="search"
+                        value="{{ $filters['search'] ?? '' }}"
+                        class="form-control"
+                        placeholder="Cari nama file, judul, deskripsi, atau kategori"
+                    >
+                </div>
+                <div class="tenant-file-filter-actions">
+                    <button type="submit" class="btn btn-brand">Cari</button>
+                    <a href="{{ route($mode === 'mine' ? 'tenant.user.files.mine' : 'tenant.user.files.tenant', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Reset</a>
+                </div>
+            </form>
+        </section>
     @endif
 
     <section class="panel-box p-4">
@@ -113,6 +194,9 @@
                                     <div class="fw-semibold text-capitalize">{{ $file->visibility }}</div>
                                 @endif
                                 <div class="text-secondary small">
+                                    @if($mode === 'tenant')
+                                        {{ $file->guestUploader?->name ?? 'Uploader tidak diketahui' }} |
+                                    @endif
                                     {{ $file->category?->name ?? 'Tanpa kategori' }} | {{ $file->uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}
                                 </div>
                             </td>
@@ -147,6 +231,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if(method_exists($files, 'links'))
+            <div class="mt-4">
+                {{ $files->links('pagination::bootstrap-5') }}
+            </div>
+        @endif
     </section>
 
     <template x-if="confirmOpen">
