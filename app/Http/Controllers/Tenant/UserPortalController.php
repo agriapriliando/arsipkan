@@ -91,7 +91,7 @@ class UserPortalController extends Controller
 
         return view('tenant.user.files.index', [
             'heading' => 'Berkas Saya',
-            'description' => 'Daftar semua berkas milik Anda di tenant ini.',
+            'description' => 'Daftar semua berkas milik Anda di Organisasi ini.',
             'files' => $query
                 ->latest('uploaded_at')
                 ->paginate(10)

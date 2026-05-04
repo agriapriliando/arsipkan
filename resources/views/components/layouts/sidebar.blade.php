@@ -21,7 +21,7 @@
         'user' => [
             ['label' => 'Dashboard', 'icon' => 'bi bi-grid-1x2-fill', 'route' => 'tenant.user.dashboard', 'params' => $tenantParams],
             ['label' => 'Berkas Saya', 'icon' => 'bi bi-folder2-open', 'route' => 'tenant.user.files.mine', 'params' => $tenantParams],
-            ['label' => 'Arsip Tenant', 'icon' => 'bi bi-archive-fill', 'route' => 'tenant.user.files.tenant', 'params' => $tenantParams],
+            ['label' => 'Arsip Organisasi', 'icon' => 'bi bi-archive-fill', 'route' => 'tenant.user.files.tenant', 'params' => $tenantParams],
             ['label' => 'Profil', 'icon' => 'bi bi-person-circle', 'route' => 'tenant.user.profile', 'params' => $tenantParams],
         ],
         default => [

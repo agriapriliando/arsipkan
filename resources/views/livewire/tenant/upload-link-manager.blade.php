@@ -1,26 +1,24 @@
-<div
-    x-data="{
-        confirmOpen: false,
-        confirmId: null,
-        confirmTitle: 'Konfirmasi tindakan',
-        confirmMessage: 'Tindakan ini akan dijalankan.',
-        confirmButton: 'Lanjutkan',
-        openDeleteModal(id, title) {
-            this.confirmId = id;
-            this.confirmTitle = 'Hapus Link Upload';
-            this.confirmMessage = `Link upload &quot;${title}&quot; akan dihapus dari sistem.`;
-            this.confirmButton = 'Ya, hapus link';
-            this.confirmOpen = true;
-        },
-        confirmDelete() {
-            if (this.confirmId !== null) {
-                $wire.delete(this.confirmId);
-            }
-
-            this.confirmOpen = false;
+<div x-data="{
+    confirmOpen: false,
+    confirmId: null,
+    confirmTitle: 'Konfirmasi tindakan',
+    confirmMessage: 'Tindakan ini akan dijalankan.',
+    confirmButton: 'Lanjutkan',
+    openDeleteModal(id, title) {
+        this.confirmId = id;
+        this.confirmTitle = 'Hapus Link Upload';
+        this.confirmMessage = `Link upload &quot;${title}&quot; akan dihapus dari sistem.`;
+        this.confirmButton = 'Ya, hapus link';
+        this.confirmOpen = true;
+    },
+    confirmDelete() {
+        if (this.confirmId !== null) {
+            $wire.delete(this.confirmId);
         }
-    }"
->
+
+        this.confirmOpen = false;
+    }
+}">
     <style>
         .app-action-modal-backdrop {
             position: fixed;
@@ -65,7 +63,8 @@
         <div>
             <span class="eyebrow mb-3">Link Upload</span>
             <h1 class="h2 fw-bold mb-1">Manajemen Link Upload</h1>
-            <p class="text-secondary mb-0">Kelola jalur upload guest berdasarkan kode, masa berlaku, dan batas penggunaan.</p>
+            <p class="text-secondary mb-0">Kelola jalur upload guest berdasarkan kode, masa berlaku, dan batas
+                penggunaan.</p>
         </div>
 
         <button type="button" class="btn btn-brand" wire:click="create">Tambah Link</button>
@@ -79,8 +78,9 @@
                 <form wire:submit="save">
                     <div class="mb-3">
                         <label for="code" class="form-label small fw-bold text-secondary">Kode</label>
-                        <input id="code" type="text" class="form-control @error('code') is-invalid @enderror" wire:model="code" placeholder="misalnya upload-a">
-                        @if(! $editingUploadLinkId)
+                        <input id="code" type="text" class="form-control @error('code') is-invalid @enderror"
+                            wire:model="code" placeholder="misalnya upload-a">
+                        @if (!$editingUploadLinkId)
                             <div class="form-text">Kosongkan jika ingin dibuat otomatis dengan huruf kecil acak.</div>
                         @endif
                         @error('code')
@@ -90,7 +90,8 @@
 
                     <div class="mb-3">
                         <label for="title" class="form-label small fw-bold text-secondary">Judul</label>
-                        <input id="title" type="text" class="form-control @error('title') is-invalid @enderror" wire:model="title" placeholder="Upload Arsip Kegiatan">
+                        <input id="title" type="text" class="form-control @error('title') is-invalid @enderror"
+                            wire:model="title" placeholder="Upload Arsip Kegiatan">
                         @error('title')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -98,7 +99,8 @@
 
                     <div class="mb-3">
                         <label for="expiresAt" class="form-label small fw-bold text-secondary">Masa Berlaku</label>
-                        <input id="expiresAt" type="datetime-local" class="form-control @error('expires_at') is-invalid @enderror" wire:model="expiresAt">
+                        <input id="expiresAt" type="datetime-local"
+                            class="form-control @error('expires_at') is-invalid @enderror" wire:model="expiresAt">
                         @error('expires_at')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -106,7 +108,9 @@
 
                     <div class="mb-3">
                         <label for="maxUsage" class="form-label small fw-bold text-secondary">Batas Penggunaan</label>
-                        <input id="maxUsage" type="number" min="1" class="form-control @error('max_usage') is-invalid @enderror" wire:model="maxUsage" placeholder="Kosongkan untuk tanpa batas">
+                        <input id="maxUsage" type="number" min="1"
+                            class="form-control @error('max_usage') is-invalid @enderror" wire:model="maxUsage"
+                            placeholder="Kosongkan untuk tanpa batas">
                         @error('max_usage')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -122,8 +126,9 @@
                             {{ $editingUploadLinkId ? 'Simpan Perubahan' : 'Buat Link' }}
                         </button>
 
-                        @if($editingUploadLinkId)
-                            <button type="button" class="btn btn-light border fw-semibold" wire:click="resetForm">Batal</button>
+                        @if ($editingUploadLinkId)
+                            <button type="button" class="btn btn-light border fw-semibold"
+                                wire:click="resetForm">Batal</button>
                         @endif
                     </div>
                 </form>
@@ -148,39 +153,66 @@
                             @forelse($uploadLinks as $uploadLink)
                                 <tr wire:key="upload-link-{{ $uploadLink->id }}">
                                     <td>
-                                        <div class="fw-bold">{{ $uploadLink->title }}</div>
+                                        <div class="fw-bold file-name-nowrap">{{ $uploadLink->title }}</div>
                                         <div class="text-secondary small"><code>{{ $uploadLink->code }}</code></div>
                                     </td>
                                     <td>
                                         <div class="fw-semibold">
-                                            {{ $uploadLink->usage_count }} / {{ $uploadLink->max_usage ?? 'tanpa batas' }}
+                                            {{ $uploadLink->usage_count }} /
+                                            {{ $uploadLink->max_usage ?? 'tanpa batas' }}
                                         </div>
-                                        <div class="text-secondary small">
-                                            Berlaku sampai {{ $uploadLink->expires_at?->translatedFormat('d M Y H:i') ?? 'tanpa batas waktu' }}
+                                        <div class="text-secondary small file-name-nowrap">
+                                            Berlaku sampai
+                                            {{ $uploadLink->expires_at?->translatedFormat('d M Y H:i') ?? 'tanpa batas waktu' }}
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="status-pill {{ $uploadLink->isUsableForGuestUpload() ? 'status-active' : 'status-inactive' }}">
+                                        <span
+                                            class="status-pill {{ $uploadLink->isUsableForGuestUpload() ? 'status-active' : 'status-inactive' }}">
                                             {{ $uploadLink->isUsableForGuestUpload() ? 'Siap dipakai' : 'Tidak tersedia' }}
                                         </span>
                                     </td>
-                                    <td class="text-end" x-data="{ copied: false, async copyLink(url) { try { if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url); } else { const input = document.createElement('input'); input.value = url; document.body.appendChild(input); input.select(); document.execCommand('copy'); input.remove(); } this.copied = true; setTimeout(() => this.copied = false, 2000); } catch (error) { window.prompt('Salin link ini:', url); } } }">
+                                    <td class="text-end" x-data="{
+                                        copied: false,
+                                        async copyLink(url) {
+                                            try {
+                                                if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url); } else {
+                                                    const input = document.createElement('input');
+                                                    input.value = url;
+                                                    document.body.appendChild(input);
+                                                    input.select();
+                                                    document.execCommand('copy');
+                                                    input.remove();
+                                                }
+                                                this.copied = true;
+                                                setTimeout(() => this.copied = false, 2000);
+                                            } catch (error) { window.prompt('Salin link ini:', url); }
+                                        }
+                                    }">
                                         <div class="btn-group">
-                                            <button type="button" class="btn btn-sm btn-light border fw-semibold" data-copy-url="{{ route('tenant.upload.show', ['tenant_slug' => $uploadLink->tenant->slug, 'code' => $uploadLink->code]) }}" x-on:click="copyLink($el.dataset.copyUrl)" x-bind:title="copied ? 'Link tersalin' : 'Copy link'" x-bind:aria-label="copied ? 'Link tersalin' : 'Copy link'">
+                                            <button type="button" class="btn btn-sm btn-light border fw-semibold"
+                                                data-copy-url="{{ route('tenant.upload.show', ['tenant_slug' => $uploadLink->tenant->slug, 'code' => $uploadLink->code]) }}"
+                                                x-on:click="copyLink($el.dataset.copyUrl)"
+                                                x-bind:title="copied ? 'Link tersalin' : 'Copy link'"
+                                                x-bind:aria-label="copied ? 'Link tersalin' : 'Copy link'">
                                                 <i class="bi bi-copy" style="font-size: 16px; line-height: 1;"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border fw-semibold" wire:click="edit({{ $uploadLink->id }})">Edit</button>
-                                            <button type="button" class="btn btn-sm btn-light border fw-semibold" wire:click="toggleActive({{ $uploadLink->id }})">
+                                            <button type="button" class="btn btn-sm btn-light border fw-semibold"
+                                                wire:click="edit({{ $uploadLink->id }})">Edit</button>
+                                            <button type="button" class="btn btn-sm btn-light border fw-semibold"
+                                                wire:click="toggleActive({{ $uploadLink->id }})">
                                                 {{ $uploadLink->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger fw-semibold" @click="openDeleteModal({{ $uploadLink->id }}, @js($uploadLink->title))">Hapus</button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger fw-semibold"
+                                                @click="openDeleteModal({{ $uploadLink->id }}, @js($uploadLink->title))">Hapus</button>
                                         </div>
                                         <div class="small text-success mt-1" x-show="copied">Link tersalin</div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-secondary py-5">Belum ada link upload.</td>
+                                    <td colspan="4" class="text-center text-secondary py-5">Belum ada link upload.
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -204,8 +236,10 @@
                     </div>
 
                     <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
-                        <button type="button" class="btn btn-outline-secondary px-4" @click="confirmOpen = false">Batal</button>
-                        <button type="button" class="btn btn-danger px-4" x-text="confirmButton" @click="confirmDelete()"></button>
+                        <button type="button" class="btn btn-outline-secondary px-4"
+                            @click="confirmOpen = false">Batal</button>
+                        <button type="button" class="btn btn-danger px-4" x-text="confirmButton"
+                            @click="confirmDelete()"></button>
                     </div>
                 </div>
             </div>

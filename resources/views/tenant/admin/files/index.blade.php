@@ -45,10 +45,13 @@
 
                     confirmForm.setAttribute('action', trigger.dataset.formAction || '#');
                     confirmFormMethod.value = trigger.dataset.formMethod || 'DELETE';
-                    confirmTitle.textContent = trigger.dataset.confirmTitle || 'Konfirmasi tindakan';
-                    confirmMessage.textContent = trigger.dataset.confirmMessage || 'Tindakan ini akan dijalankan.';
+                    confirmTitle.textContent = trigger.dataset.confirmTitle ||
+                        'Konfirmasi tindakan';
+                    confirmMessage.textContent = trigger.dataset.confirmMessage ||
+                        'Tindakan ini akan dijalankan.';
                     confirmButton.textContent = trigger.dataset.confirmButton || 'Lanjutkan';
-                    confirmButton.className = `btn ${trigger.dataset.confirmButtonClass || 'btn-danger'}`;
+                    confirmButton.className =
+                        `btn ${trigger.dataset.confirmButtonClass || 'btn-danger'}`;
 
                     confirmModal.show();
                 });
@@ -146,35 +149,29 @@
         </div>
 
         <div class="d-flex flex-wrap gap-2">
-            <a href="{{ route('tenant.admin.files.pending', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn {{ $mode === 'pending' ? 'btn-brand' : 'btn-outline-brand' }}">Pending Review</a>
-            <a href="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn {{ $mode === 'all' ? 'btn-brand' : 'btn-outline-brand' }}">Semua Berkas</a>
-            <a href="{{ route('tenant.admin.files.deleted', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn {{ $mode === 'deleted' ? 'btn-brand' : 'btn-outline-brand' }}">Berkas Terhapus</a>
+            <a href="{{ route('tenant.admin.files.pending', ['tenant_slug' => request()->route('tenant_slug')]) }}"
+                class="btn {{ $mode === 'pending' ? 'btn-brand' : 'btn-outline-brand' }}">Pending Review</a>
+            <a href="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}"
+                class="btn {{ $mode === 'all' ? 'btn-brand' : 'btn-outline-brand' }}">Semua Berkas</a>
+            <a href="{{ route('tenant.admin.files.deleted', ['tenant_slug' => request()->route('tenant_slug')]) }}"
+                class="btn {{ $mode === 'deleted' ? 'btn-brand' : 'btn-outline-brand' }}">Berkas Terhapus</a>
         </div>
     </div>
 
-    @if(session('status'))
+    @if (session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
 
-    @if($mode === 'all')
+    @if ($mode === 'all')
         <section class="panel-box admin-file-filter-panel mb-4">
-            <form
-                id="adminFileFilterForm"
-                method="GET"
+            <form id="adminFileFilterForm" method="GET"
                 action="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}"
-                class="admin-file-filter-grid"
-            >
+                class="admin-file-filter-grid">
                 <div class="admin-file-filter-field">
                     <label for="search" class="form-label fw-semibold">Pencarian</label>
-                    <input
-                        id="search"
-                        type="text"
-                        name="search"
-                        data-auto-submit="search"
-                        value="{{ $filters['search'] ?? '' }}"
-                        class="form-control"
-                        placeholder="Cari nama file, uploader, HP, atau kode link"
-                    >
+                    <input id="search" type="text" name="search" data-auto-submit="search"
+                        value="{{ $filters['search'] ?? '' }}" class="form-control"
+                        placeholder="Cari nama file, uploader, HP, atau kode link">
                 </div>
                 <div class="admin-file-filter-field">
                     <label for="visibility" class="form-label fw-semibold">Visibilitas</label>
@@ -189,14 +186,16 @@
                     <label for="category_id" class="form-label fw-semibold">Kategori</label>
                     <select id="category_id" name="category_id" class="form-select" data-auto-submit="change">
                         <option value="">Semua kategori</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" @selected(($filters['category_id'] ?? '') === (string) $category->id)>{{ $category->name }}</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}" @selected(($filters['category_id'] ?? '') === (string) $category->id)>{{ $category->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="admin-file-filter-actions">
                     <div class="d-flex gap-2">
-                        <a href="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="btn btn-outline-brand">Reset</a>
+                        <a href="{{ route('tenant.admin.files.index', ['tenant_slug' => request()->route('tenant_slug')]) }}"
+                            class="btn btn-outline-brand">Reset</a>
                     </div>
                 </div>
             </form>
@@ -210,8 +209,6 @@
                     <tr>
                         <th>Berkas</th>
                         <th>Uploader</th>
-                        <th>Visibilitas</th>
-                        <th>Status</th>
                         <th>Metadata</th>
                         <th class="text-end">Aksi</th>
                     </tr>
@@ -220,86 +217,84 @@
                     @forelse($files as $file)
                         <tr>
                             <td>
-                                <div class="fw-bold">{{ $file->title ?: $file->original_name }}</div>
+                                <div class="fw-bold file-name-nowrap">{{ $file->title ?: $file->original_name }}</div>
                                 <div class="text-secondary small">{{ $file->original_name }}</div>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $file->guestUploader?->name ?? 'Uploader tidak diketahui' }}</div>
-                                <div class="text-secondary small">{{ $file->guestUploader?->phone_number ?? '-' }}</div>
-                            </td>
-                            <td>
-                                <span class="status-pill {{
-                                    $file->visibility === 'public'
+                                <span
+                                    class="status-pill {{ $file->visibility === 'public'
                                         ? 'status-active'
-                                        : ($file->visibility === 'private' ? 'status-pending' : 'status-inactive')
-                                }}">
+                                        : ($file->visibility === 'private'
+                                            ? 'status-pending'
+                                            : 'status-inactive') }}">
                                     {{ $file->visibility }}
+                                </span>
+                                <span
+                                    class="status-pill {{ $file->status === 'valid' ? 'status-active' : 'status-inactive' }}">
+                                    {{ str_replace('_', ' ', $file->status) }}
                                 </span>
                             </td>
                             <td>
-                                <span class="status-pill {{ $file->status === 'valid' ? 'status-active' : 'status-inactive' }}">
+                                <div class="fw-semibold file-name-nowrap">
+                                    {{ $file->guestUploader?->name ?? 'Uploader tidak diketahui' }}
+                                </div>
+                                <div class="text-secondary small">{{ $file->guestUploader?->phone_number ?? '-' }}</div>
+                                <span
+                                    class="status-pill {{ $file->status === 'valid' ? 'status-active' : 'status-inactive' }}">
                                     {{ str_replace('_', ' ', $file->status) }}
                                 </span>
                             </td>
                             <td class="text-secondary small">
-                                <div>{{ $file->category?->name ?? 'Tanpa kategori' }}</div>
+                                <div class="file-name-nowrap">{{ $file->category?->name ?? 'Tanpa kategori' }}</div>
                                 <div>{{ $file->uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}</div>
-                                <div>{{ $file->uploadLink?->code ? 'Link '.$file->uploadLink->code : 'Tanpa link' }}</div>
-                                @if($mode === 'deleted')
+                                <div>{{ $file->uploadLink?->code ? 'Link ' . $file->uploadLink->code : 'Tanpa link' }}
+                                </div>
+                                @if ($mode === 'deleted')
                                     <div>Dihapus: {{ $file->deleted_at?->translatedFormat('d M Y H:i') ?? '-' }}</div>
                                 @endif
                             </td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-2">
-                                    <a href="{{ route('tenant.admin.files.show', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}" class="btn btn-sm btn-light border fw-semibold">Detail</a>
-                                    <a href="{{ route('tenant.admin.files.download', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}" class="btn btn-sm btn-light border fw-semibold">Unduh</a>
-                                    @if($mode === 'all' || $mode === 'pending')
-                                        <form method="POST" action="{{ route('tenant.admin.files.archive', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
+                                    <a href="{{ route('tenant.admin.files.show', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
+                                        class="btn btn-sm btn-light border fw-semibold">Detail</a>
+                                    <a href="{{ route('tenant.admin.files.download', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
+                                        class="btn btn-sm btn-light border fw-semibold">Unduh</a>
+                                    @if ($mode === 'all' || $mode === 'pending')
+                                        <form method="POST"
+                                            action="{{ route('tenant.admin.files.archive', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-outline-danger fw-semibold"
+                                            <button type="button" class="btn btn-sm btn-outline-danger fw-semibold"
                                                 data-file-action-confirm
                                                 data-form-action="{{ route('tenant.admin.files.archive', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
-                                                data-form-method="DELETE"
-                                                data-confirm-title="Pindahkan ke Berkas Terhapus"
+                                                data-form-method="DELETE" data-confirm-title="Pindahkan ke Berkas Terhapus"
                                                 data-confirm-message="File ini akan dipindahkan ke daftar berkas terhapus dan masih bisa dipulihkan nanti."
                                                 data-confirm-button="Ya, pindahkan"
-                                                data-confirm-button-class="btn-danger"
-                                            >Hapus</button>
+                                                data-confirm-button-class="btn-danger">Hapus</button>
                                         </form>
                                     @endif
-                                    @if($mode === 'deleted')
-                                        <form method="POST" action="{{ route('tenant.admin.files.restore', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
+                                    @if ($mode === 'deleted')
+                                        <form method="POST"
+                                            action="{{ route('tenant.admin.files.restore', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
                                             @csrf
                                             @method('PATCH')
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-outline-success fw-semibold"
+                                            <button type="button" class="btn btn-sm btn-outline-success fw-semibold"
                                                 data-file-action-confirm
                                                 data-form-action="{{ route('tenant.admin.files.restore', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
-                                                data-form-method="PATCH"
-                                                data-confirm-title="Pulihkan File"
+                                                data-form-method="PATCH" data-confirm-title="Pulihkan File"
                                                 data-confirm-message="File ini akan dikembalikan ke daftar aktif dan dapat dikelola kembali."
                                                 data-confirm-button="Ya, pulihkan"
-                                                data-confirm-button-class="btn-success"
-                                            >Pulihkan</button>
+                                                data-confirm-button-class="btn-success">Pulihkan</button>
                                         </form>
-                                        <form method="POST" action="{{ route('tenant.admin.files.destroy', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
+                                        <form method="POST"
+                                            action="{{ route('tenant.admin.files.destroy', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}">
                                             @csrf
                                             @method('DELETE')
-                                            <button
-                                                type="button"
-                                                class="btn btn-sm btn-outline-danger fw-semibold"
+                                            <button type="button" class="btn btn-sm btn-outline-danger fw-semibold"
                                                 data-file-action-confirm
                                                 data-form-action="{{ route('tenant.admin.files.destroy', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
-                                                data-form-method="DELETE"
-                                                data-confirm-title="Hapus Permanen File"
+                                                data-form-method="DELETE" data-confirm-title="Hapus Permanen File"
                                                 data-confirm-message="Tindakan ini tidak dapat dibatalkan. File akan dihapus permanen dari sistem."
                                                 data-confirm-button="Ya, hapus permanen"
-                                                data-confirm-button-class="btn-danger"
-                                            >Hapus Permanen</button>
+                                                data-confirm-button-class="btn-danger">Hapus Permanen</button>
                                         </form>
                                     @endif
                                 </div>
@@ -307,21 +302,23 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-secondary py-5">Belum ada file untuk ditampilkan.</td>
+                            <td colspan="6" class="text-center text-secondary py-5">Belum ada file untuk ditampilkan.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        @if(method_exists($files, 'links'))
+        @if (method_exists($files, 'links'))
             <div class="mt-4">
                 {{ $files->links('pagination::bootstrap-5') }}
             </div>
         @endif
     </section>
 
-    <div class="modal fade" id="fileActionConfirmModal" tabindex="-1" aria-labelledby="fileActionConfirmTitle" aria-hidden="true">
+    <div class="modal fade" id="fileActionConfirmModal" tabindex="-1" aria-labelledby="fileActionConfirmTitle"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem;">
                 <div class="modal-body p-4 p-lg-4 text-center">
@@ -331,11 +328,14 @@
                     <h2 id="fileActionConfirmTitle" class="h4 fw-bold mb-2">Konfirmasi tindakan</h2>
                     <p id="fileActionConfirmMessage" class="text-secondary mb-4">Tindakan ini akan dijalankan.</p>
 
-                    <form id="fileActionConfirmForm" method="POST" class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                    <form id="fileActionConfirmForm" method="POST"
+                        class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
                         @csrf
                         <input id="fileActionConfirmFormMethod" type="hidden" name="_method" value="DELETE">
-                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Batal</button>
-                        <button id="fileActionConfirmButton" type="submit" class="btn btn-danger px-4">Lanjutkan</button>
+                        <button type="button" class="btn btn-outline-secondary px-4"
+                            data-bs-dismiss="modal">Batal</button>
+                        <button id="fileActionConfirmButton" type="submit"
+                            class="btn btn-danger px-4">Lanjutkan</button>
                     </form>
                 </div>
             </div>
