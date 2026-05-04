@@ -38,7 +38,7 @@ Route::get('/', function () {
         }
     }
 
-    return view('home');
+    // return view('home');
 })->name('home');
 
 Route::prefix('superadmin')
