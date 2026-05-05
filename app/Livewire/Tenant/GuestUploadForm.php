@@ -70,6 +70,8 @@ class GuestUploadForm extends Component
     {
         $tenant = $this->currentTenant();
         $this->uploadLink->refresh()->load('tenant');
+        $maxUploadSizeKb = $tenant->resolvedMaxUploadSizeKb();
+        $maxUploadSizeMbLabel = rtrim(rtrim(number_format($maxUploadSizeKb / 1024, 2, ',', '.'), '0'), ',');
 
         abort_unless(Gate::forUser(null)->allows('uploadAsGuest', $this->uploadLink), 404);
 
@@ -95,14 +97,14 @@ class GuestUploadForm extends Component
                 'uploadedFile' => [
                     'required',
                     'file',
-                    'max:20480',
+                    'max:'.$maxUploadSizeKb,
                     'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,txt',
                     'mimetypes:text/plain,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/jpeg,image/png',
                 ],
             ], [
                 'uploadedFile.required' => 'Silakan pilih file yang ingin diunggah.',
                 'uploadedFile.file' => 'File yang dipilih tidak valid.',
-                'uploadedFile.max' => 'Ukuran file terlalu besar. Maksimal 20 MB per file.',
+                'uploadedFile.max' => 'Ukuran file terlalu besar. Maksimal '.$maxUploadSizeMbLabel.' MB per file.',
                 'uploadedFile.extensions' => 'Format file tidak didukung. Gunakan PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, atau TXT.',
                 'uploadedFile.mimetypes' => 'Tipe file tidak didukung. Gunakan file dokumen atau gambar yang diizinkan.',
             ], [

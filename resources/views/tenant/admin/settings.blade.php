@@ -38,6 +38,34 @@
             <section class="panel-box p-4 h-100">
                 <div class="row g-4">
                     <div class="col-12 col-lg-5">
+                        <h2 class="h5 fw-bold mb-3">Batas Upload Dokumen</h2>
+                        <form method="POST" action="{{ route('tenant.admin.settings.update', ['tenant_slug' => request()->route('tenant_slug')]) }}" class="mb-4">
+                            @csrf
+                            @method('PATCH')
+                            <div class="mb-3">
+                                <label for="max_upload_size_mb" class="form-label fw-semibold">Maksimal ukuran per file</label>
+                                <div class="input-group">
+                                    <input
+                                        id="max_upload_size_mb"
+                                        type="number"
+                                        min="1"
+                                        max="100"
+                                        step="1"
+                                        name="max_upload_size_mb"
+                                        value="{{ old('max_upload_size_mb', (int) round($tenant->resolvedMaxUploadSizeKb() / 1024)) }}"
+                                        class="form-control @error('max_upload_size_mb') is-invalid @enderror"
+                                        placeholder="20"
+                                    >
+                                    <span class="input-group-text">MB</span>
+                                    @error('max_upload_size_mb')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="form-text">Batas ini dipakai saat uploader mengunggah berkas melalui link upload tenant.</div>
+                            </div>
+                            <button type="submit" class="btn btn-brand">Simpan Batas Upload</button>
+                        </form>
+
                         <h2 class="h5 fw-bold mb-3">Aturan Skor Aktif</h2>
                         <div class="muted-label mb-1">Upload valid</div>
                         <div class="fs-4 fw-bold mb-3">+{{ $scoreRule->upload_valid_point }}</div>

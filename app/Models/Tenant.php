@@ -9,6 +9,8 @@ use Illuminate\Validation\ValidationException;
 
 class Tenant extends Model
 {
+    public const DEFAULT_MAX_UPLOAD_SIZE_KB = 20480;
+
     protected $fillable = [
         'code',
         'name',
@@ -17,6 +19,7 @@ class Tenant extends Model
         'storage_quota_bytes',
         'storage_used_bytes',
         'storage_warning_threshold_percent',
+        'max_upload_size_kb',
         'is_active',
     ];
 
@@ -26,6 +29,7 @@ class Tenant extends Model
             'storage_quota_bytes' => 'integer',
             'storage_used_bytes' => 'integer',
             'storage_warning_threshold_percent' => 'integer',
+            'max_upload_size_kb' => 'integer',
             'is_active' => 'boolean',
         ];
     }
@@ -131,5 +135,15 @@ class Tenant extends Model
     public function isStorageNearLimit(): bool
     {
         return $this->storageUsagePercent() >= $this->storage_warning_threshold_percent;
+    }
+
+    public function maxUploadSizeMb(): float
+    {
+        return round($this->resolvedMaxUploadSizeKb() / 1024, 2);
+    }
+
+    public function resolvedMaxUploadSizeKb(): int
+    {
+        return max(1, (int) ($this->max_upload_size_kb ?: static::DEFAULT_MAX_UPLOAD_SIZE_KB));
     }
 }

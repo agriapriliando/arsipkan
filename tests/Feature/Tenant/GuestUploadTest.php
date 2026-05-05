@@ -249,6 +249,24 @@ it('rejects uploads that exceed tenant storage quota', function () {
     Storage::disk('local')->assertDirectoryEmpty('/');
 });
 
+it('uses the tenant upload size limit when validating guest uploads', function () {
+    Storage::fake('local');
+
+    $tenant = createTenantForGuestUpload([
+        'max_upload_size_kb' => 1024,
+    ]);
+    createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('name', 'Budi Pengunggah')
+        ->set('phoneNumber', '08123456789')
+        ->set('visibility', File::VISIBILITY_PRIVATE)
+        ->set('uploadedFile', UploadedFile::fake()->create('besar.pdf', 2048, 'application/pdf'))
+        ->call('submit')
+        ->assertHasErrors(['uploadedFile']);
+});
+
 it('rejects guest upload with invalid indonesian phone number', function () {
     Storage::fake('local');
 

@@ -125,6 +125,7 @@ Route::prefix('{tenant_slug}')
                 Route::middleware('auth.tenant_admin')->group(function (): void {
                     Route::get('/', [AdminDashboardController::class, 'show'])->name('dashboard');
                     Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
+                    Route::patch('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
                     Route::post('/score-adjustments', [AdminDashboardController::class, 'adjust'])->name('score-adjustments.store');
                     Route::post('/logout', [TenantAdminAuthController::class, 'destroy'])->name('logout');
                 });

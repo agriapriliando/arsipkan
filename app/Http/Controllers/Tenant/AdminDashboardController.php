@@ -69,6 +69,26 @@ class AdminDashboardController extends Controller
         ]);
     }
 
+    public function updateSettings(Request $request, TenantContext $tenantContext): RedirectResponse
+    {
+        $tenant = $this->currentTenant($tenantContext);
+        $this->currentManager();
+
+        $validated = $request->validate([
+            'max_upload_size_mb' => ['required', 'integer', 'between:1,100'],
+        ], [], [
+            'max_upload_size_mb' => 'maksimal ukuran upload',
+        ]);
+
+        $tenant->forceFill([
+            'max_upload_size_kb' => (int) $validated['max_upload_size_mb'] * 1024,
+        ])->save();
+
+        return redirect()
+            ->route('tenant.admin.settings', ['tenant_slug' => $tenant->slug])
+            ->with('status', 'Pengaturan batas ukuran upload berhasil disimpan.');
+    }
+
     public function adjust(Request $request, TenantContext $tenantContext, ScoreService $scoreService): RedirectResponse
     {
         $tenant = $this->currentTenant($tenantContext);
