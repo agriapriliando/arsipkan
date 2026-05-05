@@ -2,6 +2,9 @@
 
 @php
     $title = 'Leaderboard '.$tenant->name;
+    $metaOgTitle = $title;
+    $metaOgDescription = 'Leaderboard kontribusi uploader publik '.$tenant->name.' di Arsipkan.';
+    $metaOgImage = asset('android-chrome-512x512.png');
 @endphp
 
 @section('content')

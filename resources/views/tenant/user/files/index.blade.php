@@ -145,6 +145,10 @@
                 .tenant-file-filter-actions a {
                     width: 100%;
                 }
+
+                .file-name-nowrap {
+                    white-space: normal;
+                }
             }
         </style>
 
@@ -199,39 +203,25 @@
                             <tr id="file-{{ $file->id }}">
                                 <td>
                                     <div class="fw-bold file-name-nowrap">{{ $file->title ?: $file->original_name }}</div>
-                                    <div
-                                        class="text-secondary small mt-1"
-                                        x-data="{ editing: {{ old('rename_file_id') == $file->id ? 'true' : 'false' }} }"
-                                    >
+                                    <div class="text-secondary small mt-1" x-data="{ editing: {{ old('rename_file_id') == $file->id ? 'true' : 'false' }} }">
                                         @if ($mode === 'mine')
                                             <template x-if="!editing">
-                                                <button
-                                                    type="button"
-                                                    class="tenant-original-name-trigger"
-                                                    @click="editing = true; $nextTick(() => $refs.originalNameInput.focus())"
-                                                >
+                                                <button type="button" class="tenant-original-name-trigger"
+                                                    @click="editing = true; $nextTick(() => $refs.originalNameInput.focus())">
                                                     <i class="bi bi-pencil"></i>
                                                     <span>{{ $file->original_name }}</span>
                                                 </button>
                                             </template>
 
-                                            <form
-                                                method="POST"
+                                            <form method="POST"
                                                 action="{{ route('tenant.user.files.original-name', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
-                                                class="tenant-original-name-editor"
-                                                x-show="editing"
-                                                x-cloak
-                                            >
+                                                class="tenant-original-name-editor" x-show="editing" x-cloak>
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="rename_file_id" value="{{ $file->id }}">
-                                                <input
-                                                    x-ref="originalNameInput"
-                                                    type="text"
-                                                    name="original_name"
+                                                <input x-ref="originalNameInput" type="text" name="original_name"
                                                     value="{{ old('rename_file_id') == $file->id ? old('original_name', $file->original_name) : $file->original_name }}"
-                                                    class="form-control form-control-sm {{ old('rename_file_id') == $file->id && $errors->has('original_name') ? 'is-invalid' : '' }}"
-                                                >
+                                                    class="form-control form-control-sm {{ old('rename_file_id') == $file->id && $errors->has('original_name') ? 'is-invalid' : '' }}">
                                                 @if (old('rename_file_id') == $file->id)
                                                     @error('original_name')
                                                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -239,7 +229,8 @@
                                                 @endif
                                                 <div class="tenant-original-name-actions mt-2">
                                                     <button type="submit" class="btn btn-sm btn-brand">Simpan</button>
-                                                    <button type="button" class="btn btn-sm btn-outline-brand" @click="editing = false">Batal</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-brand"
+                                                        @click="editing = false">Batal</button>
                                                 </div>
                                             </form>
                                         @else

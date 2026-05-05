@@ -2,6 +2,9 @@
 
 @php
     $title = 'Katalog Publik '.$tenant->name;
+    $metaOgTitle = $title;
+    $metaOgDescription = 'Katalog publik '.$tenant->name.' di Arsipkan untuk menelusuri berkas yang sudah dipublikasikan organisasi.';
+    $metaOgImage = asset('android-chrome-512x512.png');
 @endphp
 
 @section('content')

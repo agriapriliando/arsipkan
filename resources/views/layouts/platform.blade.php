@@ -12,6 +12,11 @@
         <meta property="og:description" content="{{ $metaOgDescription ?? ($metaDescription ?? 'Arsipkan membantu organisasi mengelola arsip digital secara terstruktur, aman, dan mudah diakses.') }}">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:site_name" content="{{ config('app.name', 'Arsipkan') }}">
+        @if (! empty($metaOgImage ?? null))
+            <meta property="og:image" content="{{ $metaOgImage }}">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:image" content="{{ $metaOgImage }}">
+        @endif
         @include('partials.pwa.head')
         <x-layouts.assets />
         @livewireStyles

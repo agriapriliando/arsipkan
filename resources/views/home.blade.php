@@ -6,6 +6,7 @@
     $metaKeywords = 'arsipkan, aplikasi arsip digital, manajemen dokumen instansi, katalog publik dokumen, aplikasi arsip organisasi, multi tenant arsip';
     $metaOgTitle = $title;
     $metaOgDescription = $metaDescription;
+    $metaOgImage = asset('android-chrome-512x512.png');
 @endphp
 
 @section('content')

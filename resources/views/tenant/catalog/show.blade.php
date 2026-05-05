@@ -2,6 +2,9 @@
 
 @php
     $title = ($file->title ?: $file->original_name).' - '.$tenant->name;
+    $metaOgTitle = $title;
+    $metaOgDescription = 'Lihat detail berkas publik '.$tenant->name.' di Arsipkan.';
+    $metaOgImage = asset('android-chrome-512x512.png');
     $isPdf = strtolower((string) $file->extension) === 'pdf' || strtolower((string) $file->mime_type) === 'application/pdf';
     $fileTypeLabel = strtoupper((string) ($file->extension ?: 'FILE'));
     $fileSizeInKb = ($file->file_size ?? 0) / 1024;
