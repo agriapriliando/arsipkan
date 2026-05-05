@@ -193,7 +193,6 @@
                     <thead>
                         <tr>
                             <th>Berkas</th>
-                            <th>Metadata</th>
                             <th>Status</th>
                             <th class="text-end">Aksi</th>
                         </tr>
@@ -237,33 +236,35 @@
                                             <div>{{ $file->original_name }}</div>
                                         @endif
                                     </div>
-                                </td>
-                                <td>
-                                    @if ($mode === 'mine')
-                                        <form method="POST"
-                                            action="{{ route('tenant.user.files.visibility', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
-                                            class="mb-1">
-                                            @csrf
-                                            @method('PATCH')
-                                            <select name="visibility" class="form-select form-select-sm"
-                                                onchange="if(this.value === 'public' && !confirm('Ubah ke public? File akan masuk antrean review admin.')) { this.value = '{{ $file->visibility }}'; return; } this.form.submit();">
-                                                <option value="private" @selected($file->visibility === 'private')>private</option>
-                                                <option value="internal" @selected($file->visibility === 'internal')>internal</option>
-                                                <option value="public" @selected($file->visibility === 'public')>public</option>
-                                            </select>
-                                        </form>
-                                        <div class="text-secondary small file-name-nowrap">Jika diubah ke public, file akan
-                                            direview ulang admin.
-                                        </div>
-                                    @else
-                                        <div class="fw-semibold text-capitalize">{{ $file->visibility }}</div>
-                                    @endif
-                                    <div class="text-secondary small file-name-nowrap">
-                                        @if ($mode === 'tenant')
-                                            {{ $file->guestUploader?->name ?? 'Uploader tidak diketahui' }} |
+                                    <div>
+                                        @if ($mode === 'mine')
+                                            <div class="text-secondary small file-name-nowrap">
+                                                Jika diubah ke public, file akan direview ulang admin.
+                                            </div>
+                                            <form method="POST"
+                                                action="{{ route('tenant.user.files.visibility', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
+                                                class="mb-1">
+                                                @csrf
+                                                @method('PATCH')
+                                                <select name="visibility" class="form-select form-select-sm"
+                                                    onchange="if(this.value === 'public' && !confirm('Ubah ke public? File akan masuk antrean review admin.')) { this.value = '{{ $file->visibility }}'; return; } this.form.submit();">
+                                                    <option value="private" @selected($file->visibility === 'private')>private</option>
+                                                    <option value="internal" @selected($file->visibility === 'internal')>internal</option>
+                                                    <option value="public" @selected($file->visibility === 'public')>public</option>
+                                                </select>
+                                            </form>
+                                        @else
+                                            <div class="fw-semibold text-capitalize">{{ $file->visibility }}</div>
                                         @endif
-                                        {{ $file->category?->name ?? 'Tanpa kategori' }} |
-                                        {{ $file->uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}
+                                        <div class="text-secondary small file-name-nowrap">
+                                            @if ($mode === 'tenant')
+                                                <span class="badge text-bg-success">
+                                                    {{ $file->guestUploader?->name ?? 'Uploader tidak diketahui' }}
+                                                </span> |
+                                            @endif
+                                            {{ $file->category?->name ?? 'Tanpa kategori' }} |
+                                            {{ $file->uploaded_at?->translatedFormat('d M Y H:i') ?? '-' }}
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
