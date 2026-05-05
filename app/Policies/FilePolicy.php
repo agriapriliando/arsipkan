@@ -62,6 +62,11 @@ class FilePolicy
         return $this->update($user, $file);
     }
 
+    public function renameOriginalName(AdminUser|UserAccount $user, File $file): bool
+    {
+        return $this->delete($user, $file) && $file->deleted_at === null;
+    }
+
     public function review(AdminUser|UserAccount $user, File $file): bool
     {
         return $this->update($user, $file);

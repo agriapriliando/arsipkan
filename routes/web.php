@@ -84,6 +84,7 @@ Route::prefix('{tenant_slug}')
             Route::get('/tenant-files', [UserPortalController::class, 'tenantFiles'])->name('user.files.tenant');
             Route::get('/files/{file}', [UserPortalController::class, 'show'])->name('user.files.show');
             Route::get('/files/{file}/download', [UserPortalController::class, 'download'])->name('user.files.download');
+            Route::patch('/files/{file}/original-name', [UserPortalController::class, 'updateOriginalName'])->name('user.files.original-name');
             Route::patch('/files/{file}/visibility', [UserPortalController::class, 'updateVisibility'])->name('user.files.visibility');
             Route::get('/profile', [UserPortalController::class, 'profile'])->name('user.profile');
             Route::delete('/files/{file}', [UserPortalController::class, 'destroy'])->name('user.files.destroy');

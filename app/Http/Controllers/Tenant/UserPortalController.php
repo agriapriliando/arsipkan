@@ -255,6 +255,35 @@ class UserPortalController extends Controller
         return new RedirectResponse(route('tenant.user.files.mine', ['tenant_slug' => $tenant->slug]));
     }
 
+    public function updateOriginalName(Request $request, TenantContext $tenantContext, string $tenant_slug, int $file): RedirectResponse
+    {
+        $tenant = $this->currentTenant($tenantContext);
+        $account = $this->currentAccount();
+
+        $archivedFile = File::query()
+            ->where('tenant_id', $tenant->id)
+            ->findOrFail($file);
+
+        abort_unless($account->can('renameOriginalName', $archivedFile), 403);
+
+        $validated = $request->validate([
+            'original_name' => ['required', 'string', 'max:255'],
+            'rename_file_id' => ['nullable', 'integer'],
+        ], [], [
+            'original_name' => 'nama file',
+        ]);
+
+        $archivedFile->forceFill([
+            'original_name' => trim($validated['original_name']),
+        ])->save();
+
+        $request->session()->flash('status', 'Nama file berhasil diperbarui.');
+
+        return new RedirectResponse(route('tenant.user.files.mine', [
+            'tenant_slug' => $tenant->slug,
+        ]).'#file-'.$archivedFile->id);
+    }
+
     protected function currentTenant(TenantContext $tenantContext): Tenant
     {
         $tenant = $tenantContext->tenant();

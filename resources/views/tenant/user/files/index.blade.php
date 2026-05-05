@@ -18,6 +18,10 @@
         }
     }">
         <style>
+            [x-cloak] {
+                display: none !important;
+            }
+
             .tenant-file-filter-panel {
                 padding: 1rem 1.1rem;
             }
@@ -91,6 +95,38 @@
                 font-size: 1.35rem;
             }
 
+            .tenant-original-name-trigger {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.45rem;
+                border: 0;
+                background: transparent;
+                padding: 0;
+                color: inherit;
+                font: inherit;
+                text-align: left;
+            }
+
+            .tenant-original-name-trigger i {
+                color: #64748b;
+                font-size: 0.86rem;
+            }
+
+            .tenant-original-name-trigger:hover i,
+            .tenant-original-name-trigger:focus-visible i {
+                color: #0d6efd;
+            }
+
+            .tenant-original-name-editor {
+                max-width: 28rem;
+            }
+
+            .tenant-original-name-actions {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
             @media (max-width: 575.98px) {
                 .tenant-file-filter-panel {
                     padding: 0.95rem;
@@ -160,10 +196,56 @@
                     </thead>
                     <tbody>
                         @forelse($files as $file)
-                            <tr>
+                            <tr id="file-{{ $file->id }}">
                                 <td>
                                     <div class="fw-bold file-name-nowrap">{{ $file->title ?: $file->original_name }}</div>
-                                    <div class="text-secondary small">{{ $file->original_name }}</div>
+                                    <div
+                                        class="text-secondary small mt-1"
+                                        x-data="{ editing: {{ old('rename_file_id') == $file->id ? 'true' : 'false' }} }"
+                                    >
+                                        @if ($mode === 'mine')
+                                            <template x-if="!editing">
+                                                <button
+                                                    type="button"
+                                                    class="tenant-original-name-trigger"
+                                                    @click="editing = true; $nextTick(() => $refs.originalNameInput.focus())"
+                                                >
+                                                    <i class="bi bi-pencil"></i>
+                                                    <span>{{ $file->original_name }}</span>
+                                                </button>
+                                            </template>
+
+                                            <form
+                                                method="POST"
+                                                action="{{ route('tenant.user.files.original-name', ['tenant_slug' => request()->route('tenant_slug'), 'file' => $file->id]) }}"
+                                                class="tenant-original-name-editor"
+                                                x-show="editing"
+                                                x-cloak
+                                            >
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="rename_file_id" value="{{ $file->id }}">
+                                                <input
+                                                    x-ref="originalNameInput"
+                                                    type="text"
+                                                    name="original_name"
+                                                    value="{{ old('rename_file_id') == $file->id ? old('original_name', $file->original_name) : $file->original_name }}"
+                                                    class="form-control form-control-sm {{ old('rename_file_id') == $file->id && $errors->has('original_name') ? 'is-invalid' : '' }}"
+                                                >
+                                                @if (old('rename_file_id') == $file->id)
+                                                    @error('original_name')
+                                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                    @enderror
+                                                @endif
+                                                <div class="tenant-original-name-actions mt-2">
+                                                    <button type="submit" class="btn btn-sm btn-brand">Simpan</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-brand" @click="editing = false">Batal</button>
+                                                </div>
+                                            </form>
+                                        @else
+                                            <div>{{ $file->original_name }}</div>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>
                                     @if ($mode === 'mine')
