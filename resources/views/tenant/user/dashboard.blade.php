@@ -3,48 +3,41 @@
 @section('content')
     <section class="hero-card p-4 p-lg-5 mb-4">
         <span class="eyebrow mb-3">User Uploader</span>
-        <h1 class="display-6 fw-bold mb-3">Portal Uploader {{ $currentTenant->name ?? 'Organisasi' }}</h1>
-        <p class="text-secondary fs-5 mb-0">Kelola berkas Anda dan lihat arsip internal organisasi. Upload hanya dilakukan
-            melalui link upload organisasi.</p>
+        <h1 class="display-6 fw-bold mb-3">Portal Pengguna {{ $currentTenant->name ?? 'Organisasi' }}</h1>
+        <p class="text-secondary fs-5 mb-0">Kelola berkas Anda dan lihat arsip internal organisasi.</p>
 
     </section>
 
     <div class="row g-4">
         <div class="col-12 col-md-3">
             <section class="stat-card">
-                <div class="stat-icon icon-purple">
-                    <i data-lucide="folder"></i>
-                </div>
                 <a href="{{ route('tenant.user.files.mine', ['tenant_slug' => request()->route('tenant_slug')]) }}"
-                    class="btn btn-brand btn-sm mt-1">Berkas Saya
+                    class="btn btn-brand btn-sm mt-1"><i data-lucide="folder"></i> Berkas Saya
                 </a>
                 <div class="stat-value">{{ $myFileCount }}</div>
-                <div class="stat-label">Total berkas saya
+                <div class="stat-label">Total berkas private saya
                 </div>
             </section>
         </div>
 
+        <div class="col-12 col-md-3">
+            <section class="stat-card">
+                <a href="{{ route('tenant.user.files.tenant', ['tenant_slug' => request()->route('tenant_slug')]) }}"
+                    class="btn btn-brand btn-sm mt-1"><i data-lucide="database"></i> Arsip Organisasi</a>
+                <div class="stat-value">{{ $tenantFileCount }}</div>
+                <div class="stat-label">Total berkas internal organisasi</div>
+            </section>
+        </div>
         <div class="col-12 col-md-3">
             <section class="stat-card">
                 <div class="stat-icon icon-amber">
                     <i data-lucide="file-clock"></i>
                 </div>
                 <div class="stat-value">{{ $pendingReviewCount }}</div>
-                <div class="stat-label">Menunggu review</div>
+                <div class="stat-label">Menunggu review (public)</div>
             </section>
         </div>
 
-        <div class="col-12 col-md-3">
-            <section class="stat-card">
-                <div class="stat-icon icon-emerald">
-                    <i data-lucide="database"></i>
-                </div>
-                <a href="{{ route('tenant.user.files.tenant', ['tenant_slug' => request()->route('tenant_slug')]) }}"
-                    class="btn btn-outline-brand btn-sm mt-1">Arsip Organisasi</a>
-                <div class="stat-value">{{ $tenantFileCount }}</div>
-                <div class="stat-label">Total berkas organisasi</div>
-            </section>
-        </div>
         <div class="col-12 col-md-3">
             <section class="stat-card">
                 <div class="stat-icon icon-emerald">
@@ -60,8 +53,7 @@
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
             <div>
                 <h2 class="h5 fw-bold mb-1">Daftar Link Upload Aktif</h2>
-                <p class="text-secondary mb-0">Gunakan salah satu link aktif berikut untuk mengunggah berkas tanpa login
-                    tambahan.</p>
+                <p class="text-secondary mb-0">Gunakan salah satu link aktif berikut untuk mengunggah berkas tanpa login</p>
             </div>
             <span class="tenant-chip">{{ $uploadLinkCount }} link aktif</span>
         </div>
@@ -70,16 +62,21 @@
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
+                        <th>Aksi</th>
                         <th>Judul</th>
                         <th>Kode</th>
                         <th>Masa Berlaku</th>
                         <th>Batas Pakai</th>
-                        <th class="text-end">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($activeUploadLinks as $uploadLink)
                         <tr>
+                            <td>
+                                <a target="_blank"
+                                    href="{{ route('tenant.upload.show', ['tenant_slug' => request()->route('tenant_slug'), 'code' => $uploadLink->code]) }}"
+                                    class="btn btn-brand btn-sm">Unggah Berkas</a>
+                            </td>
                             <td>
                                 <div class="fw-semibold">{{ $uploadLink->title ?: 'Link Upload' }}</div>
                                 <div class="text-secondary small">Unggah tamu untuk
@@ -101,11 +98,6 @@
                                 @else
                                     <div class="fw-semibold">Tak terbatas</div>
                                 @endif
-                            </td>
-                            <td class="text-end">
-                                <a target="_blank"
-                                    href="{{ route('tenant.upload.show', ['tenant_slug' => request()->route('tenant_slug'), 'code' => $uploadLink->code]) }}"
-                                    class="btn btn-outline-brand btn-sm">Buka Link</a>
                             </td>
                         </tr>
                     @empty
