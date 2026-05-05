@@ -252,8 +252,9 @@
                                                 <option value="public" @selected($file->visibility === 'public')>public</option>
                                             </select>
                                         </form>
-                                        <div class="text-secondary small">Jika diubah ke public, file akan direview ulang
-                                            admin.</div>
+                                        <div class="text-secondary small file-name-nowrap">Jika diubah ke public, file akan
+                                            direview ulang admin.
+                                        </div>
                                     @else
                                         <div class="fw-semibold text-capitalize">{{ $file->visibility }}</div>
                                     @endif
