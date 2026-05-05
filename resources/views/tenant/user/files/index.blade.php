@@ -147,7 +147,7 @@
                 }
 
                 .file-name-nowrap {
-                    white-space: normal;
+                    white-space: nowrap;
                 }
             }
         </style>
