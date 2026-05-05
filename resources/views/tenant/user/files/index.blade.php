@@ -258,7 +258,7 @@
                                     @else
                                         <div class="fw-semibold text-capitalize">{{ $file->visibility }}</div>
                                     @endif
-                                    <div class="text-secondary small">
+                                    <div class="text-secondary small file-name-nowrap">
                                         @if ($mode === 'tenant')
                                             {{ $file->guestUploader?->name ?? 'Uploader tidak diketahui' }} |
                                         @endif
