@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Category;
 use App\Models\File;
 use App\Models\GuestUploader;
+use App\Models\Tag;
 use App\Models\Tenant;
 use App\Models\UploadLink;
 use App\Models\UserAccount;
@@ -57,6 +59,24 @@ function createFileForUserPortal(Tenant $tenant, UserAccount $owner, array $over
         'status' => File::STATUS_VALID,
         'uploaded_at' => now(),
     ], $overrides));
+}
+
+function createCategoryForUserPortal(Tenant $tenant, string $name): Category
+{
+    return Category::create([
+        'tenant_id' => $tenant->id,
+        'name' => $name,
+        'slug' => str($name)->slug()->value(),
+        'is_active' => true,
+    ]);
+}
+
+function createTagForUserPortal(Tenant $tenant, string $name): Tag
+{
+    return Tag::create([
+        'tenant_id' => $tenant->id,
+        'name' => $name,
+    ]);
 }
 
 it('shows the user portal pages for authenticated user uploaders', function () {
@@ -191,8 +211,49 @@ it('supports search and pagination on my files page', function () {
         ->get('/portal-a/my-files')
         ->assertOk()
         ->assertSee('my-doc-01.pdf')
-        ->assertSee('?page=2')
+        ->assertSee('Berikutnya')
         ->assertDontSee('peer-hidden.pdf');
+});
+
+it('supports category and tag filters on my files page', function () {
+    $tenant = createTenantForUserPortal();
+    $account = createUserForUserPortal($tenant, '08123456789', 'Owner Portal');
+
+    $categoryA = createCategoryForUserPortal($tenant, 'Keuangan');
+    $categoryB = createCategoryForUserPortal($tenant, 'Umum');
+    $tagA = createTagForUserPortal($tenant, 'Prioritas');
+    $tagB = createTagForUserPortal($tenant, 'Arsip');
+
+    $matchingFile = createFileForUserPortal($tenant, $account, [
+        'original_name' => 'laporan-keuangan.pdf',
+        'category_id' => $categoryA->id,
+    ]);
+    $otherCategoryFile = createFileForUserPortal($tenant, $account, [
+        'original_name' => 'surat-umum.pdf',
+        'category_id' => $categoryB->id,
+    ]);
+    $otherTagFile = createFileForUserPortal($tenant, $account, [
+        'original_name' => 'catatan-arsip.pdf',
+        'category_id' => $categoryA->id,
+    ]);
+
+    $matchingFile->tags()->attach($tagA->id);
+    $otherCategoryFile->tags()->attach($tagA->id);
+    $otherTagFile->tags()->attach($tagB->id);
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/my-files?category_id='.$categoryA->id)
+        ->assertOk()
+        ->assertSee('laporan-keuangan.pdf')
+        ->assertSee('catatan-arsip.pdf')
+        ->assertDontSee('surat-umum.pdf');
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/my-files?tag_id='.$tagA->id)
+        ->assertOk()
+        ->assertSee('laporan-keuangan.pdf')
+        ->assertSee('surat-umum.pdf')
+        ->assertDontSee('catatan-arsip.pdf');
 });
 
 it('supports search and pagination on tenant files page', function () {
@@ -228,7 +289,55 @@ it('supports search and pagination on tenant files page', function () {
         ->get('/portal-a/tenant-files')
         ->assertOk()
         ->assertSee('tenant-doc-01.pdf')
-        ->assertSee('?page=2');
+        ->assertSee('Berikutnya');
+});
+
+it('supports category and tag filters on tenant files page', function () {
+    $tenant = createTenantForUserPortal();
+    $account = createUserForUserPortal($tenant, '08123456789', 'Owner Portal');
+    $peer = createUserForUserPortal($tenant, '08111111111', 'Peer Portal');
+
+    $categoryA = createCategoryForUserPortal($tenant, 'Keuangan');
+    $categoryB = createCategoryForUserPortal($tenant, 'Umum');
+    $tagA = createTagForUserPortal($tenant, 'Publik');
+    $tagB = createTagForUserPortal($tenant, 'Internal');
+
+    $matchingFile = createFileForUserPortal($tenant, $peer, [
+        'original_name' => 'laporan-publik.pdf',
+        'visibility' => File::VISIBILITY_PUBLIC,
+        'status' => File::STATUS_VALID,
+        'category_id' => $categoryA->id,
+    ]);
+    $otherCategoryFile = createFileForUserPortal($tenant, $peer, [
+        'original_name' => 'memo-umum.pdf',
+        'visibility' => File::VISIBILITY_INTERNAL,
+        'status' => File::STATUS_VALID,
+        'category_id' => $categoryB->id,
+    ]);
+    $otherTagFile = createFileForUserPortal($tenant, $peer, [
+        'original_name' => 'laporan-internal.pdf',
+        'visibility' => File::VISIBILITY_INTERNAL,
+        'status' => File::STATUS_VALID,
+        'category_id' => $categoryA->id,
+    ]);
+
+    $matchingFile->tags()->attach($tagA->id);
+    $otherCategoryFile->tags()->attach($tagA->id);
+    $otherTagFile->tags()->attach($tagB->id);
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/tenant-files?category_id='.$categoryA->id)
+        ->assertOk()
+        ->assertSee('laporan-publik.pdf')
+        ->assertSee('laporan-internal.pdf')
+        ->assertDontSee('memo-umum.pdf');
+
+    $this->actingAs($account, 'user_account')
+        ->get('/portal-a/tenant-files?tag_id='.$tagA->id)
+        ->assertOk()
+        ->assertSee('laporan-publik.pdf')
+        ->assertSee('memo-umum.pdf')
+        ->assertDontSee('laporan-internal.pdf');
 });
 
 it('allows user uploaders to soft delete only their own files', function () {

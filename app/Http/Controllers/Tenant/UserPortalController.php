@@ -11,7 +11,6 @@ use App\Services\Scoring\ScoreService;
 use App\Services\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -68,37 +67,9 @@ class UserPortalController extends Controller
 
     public function myFiles(Request $request, TenantContext $tenantContext): View
     {
-        $tenant = $this->currentTenant($tenantContext);
-        $account = $this->currentAccount();
-        $search = trim((string) $request->string('search'));
-
-        $query = File::query()
-            ->with('category')
-            ->where('tenant_id', $tenant->id)
-            ->where('guest_uploader_id', $account->guest_uploader_id);
-
-        if ($search !== '') {
-            $query->where(function (Builder $builder) use ($search): void {
-                $builder
-                    ->where('original_name', 'like', '%'.$search.'%')
-                    ->orWhere('title', 'like', '%'.$search.'%')
-                    ->orWhere('description', 'like', '%'.$search.'%')
-                    ->orWhereHas('category', function (Builder $categoryQuery) use ($search): void {
-                        $categoryQuery->where('name', 'like', '%'.$search.'%');
-                    });
-            });
-        }
-
         return view('tenant.user.files.index', [
             'heading' => 'Berkas Saya',
             'description' => 'Daftar semua berkas milik Anda di Organisasi ini.',
-            'files' => $query
-                ->latest('uploaded_at')
-                ->paginate(10)
-                ->withQueryString(),
-            'filters' => [
-                'search' => $search,
-            ],
             'mode' => 'mine',
         ]);
     }
@@ -106,39 +77,10 @@ class UserPortalController extends Controller
     public function tenantFiles(Request $request, TenantContext $tenantContext): View
     {
         $tenant = $this->currentTenant($tenantContext);
-        $search = trim((string) $request->string('search'));
-
-        $query = File::query()
-            ->with(['category', 'guestUploader'])
-            ->where('tenant_id', $tenant->id)
-            ->whereIn('visibility', [
-                File::VISIBILITY_INTERNAL,
-                File::VISIBILITY_PUBLIC,
-            ])
-            ->where('status', File::STATUS_VALID);
-
-        if ($search !== '') {
-            $query->where(function (Builder $builder) use ($search): void {
-                $builder
-                    ->where('original_name', 'like', '%'.$search.'%')
-                    ->orWhere('title', 'like', '%'.$search.'%')
-                    ->orWhere('description', 'like', '%'.$search.'%')
-                    ->orWhereHas('category', function (Builder $categoryQuery) use ($search): void {
-                        $categoryQuery->where('name', 'like', '%'.$search.'%');
-                    });
-            });
-        }
 
         return view('tenant.user.files.index', [
             'heading' => 'Arsip '.$tenant->name,
             'description' => 'Berkas internal dan publik milik '.$tenant->name.' yang valid dan dapat Anda lihat.',
-            'files' => $query
-                ->latest('uploaded_at')
-                ->paginate(10)
-                ->withQueryString(),
-            'filters' => [
-                'search' => $search,
-            ],
             'mode' => 'tenant',
         ]);
     }
