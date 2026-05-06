@@ -90,10 +90,10 @@ it('stores guest uploads on private storage and creates file records', function 
         ->set('name', 'Budi Pengunggah')
         ->set('phoneNumber', '0812 3456 789')
         ->set('visibility', File::VISIBILITY_PUBLIC)
-        ->set('uploadedFile', $uploadedFile)
+        ->set('uploadedFiles', [$uploadedFile])
         ->call('submit')
         ->assertHasNoErrors()
-        ->assertSee('File berhasil diunggah.');
+        ->assertSee('1 file berhasil diunggah.');
 
     $guestUploader = GuestUploader::query()->firstOrFail();
     $file = File::query()->firstOrFail();
@@ -116,7 +116,7 @@ it('stores guest uploads on private storage and creates file records', function 
     Storage::disk('local')->assertExists($file->stored_name);
 });
 
-it('tracks the selected file name for the upload form', function () {
+it('tracks the selected file names for the upload form', function () {
     Storage::fake('local');
 
     $tenant = createTenantForGuestUpload();
@@ -124,8 +124,11 @@ it('tracks the selected file name for the upload form', function () {
     setGuestUploadTenant($tenant);
 
     Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
-        ->set('uploadedFile', UploadedFile::fake()->create('nama-muncul.pdf', 20, 'application/pdf'))
-        ->assertSet('uploadedFileName', 'nama-muncul.pdf');
+        ->set('uploadedFiles', [
+            UploadedFile::fake()->create('nama-muncul.pdf', 20, 'application/pdf'),
+            UploadedFile::fake()->create('dokumen-lain.txt', 5, 'text/plain'),
+        ])
+        ->assertSet('uploadedFileNames', ['nama-muncul.pdf', 'dokumen-lain.txt']);
 });
 
 it('sets internal and private guest uploads as valid immediately', function (string $visibility) {
@@ -141,7 +144,7 @@ it('sets internal and private guest uploads as valid immediately', function (str
         ->set('name', 'Siti Pengunggah')
         ->set('phoneNumber', '8123456789')
         ->set('visibility', $visibility)
-        ->set('uploadedFile', UploadedFile::fake()->create('arsip.txt', 5, 'text/plain'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('arsip.txt', 5, 'text/plain')])
         ->call('submit')
         ->assertHasNoErrors();
 
@@ -171,7 +174,7 @@ it('reuses guest uploaders by normalized phone number and updates the browser to
         ->set('name', 'Nama Baru')
         ->set('phoneNumber', '0812 3456 789')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('arsip.pdf', 5, 'application/pdf'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('arsip.pdf', 5, 'application/pdf')])
         ->call('submit')
         ->assertHasNoErrors();
 
@@ -237,9 +240,9 @@ it('rejects uploads that exceed tenant storage quota', function () {
         ->set('name', 'Budi Pengunggah')
         ->set('phoneNumber', '08123456789')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('besar.pdf', 5, 'application/pdf'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('besar.pdf', 5, 'application/pdf')])
         ->call('submit')
-        ->assertHasErrors(['uploadedFile']);
+        ->assertHasErrors(['uploadedFiles']);
 
     expect(File::query()->exists())->toBeFalse()
         ->and(GuestUploader::query()->exists())->toBeFalse()
@@ -262,9 +265,9 @@ it('uses the tenant upload size limit when validating guest uploads', function (
         ->set('name', 'Budi Pengunggah')
         ->set('phoneNumber', '08123456789')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('besar.pdf', 2048, 'application/pdf'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('besar.pdf', 2048, 'application/pdf')])
         ->call('submit')
-        ->assertHasErrors(['uploadedFile']);
+        ->assertHasErrors(['uploadedFiles.0']);
 });
 
 it('rejects guest upload with invalid indonesian phone number', function () {
@@ -278,7 +281,7 @@ it('rejects guest upload with invalid indonesian phone number', function () {
         ->set('name', 'Budi Pengunggah')
         ->set('phoneNumber', '12345')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf')])
         ->call('submit')
         ->assertHasErrors(['phoneNumber']);
 });
@@ -294,9 +297,65 @@ it('rejects guest upload with disallowed file extension or mime type', function 
         ->set('name', 'Budi Pengunggah')
         ->set('phoneNumber', '08123456789')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('malware.exe', 20, 'application/octet-stream'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('malware.exe', 20, 'application/octet-stream')])
         ->call('submit')
-        ->assertHasErrors(['uploadedFile']);
+        ->assertHasErrors(['uploadedFiles.0']);
+});
+
+it('stores multiple guest uploads in a single submission', function () {
+    Storage::fake('local');
+
+    $tenant = createTenantForGuestUpload([
+        'storage_quota_bytes' => 20 * 1024 * 1024,
+    ]);
+    $uploadLink = createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    $firstFile = UploadedFile::fake()->create('arsip-a.pdf', 20, 'application/pdf');
+    $secondFile = UploadedFile::fake()->create('arsip-b.txt', 5, 'text/plain');
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('name', 'Batch Uploader')
+        ->set('phoneNumber', '08123456789')
+        ->set('visibility', File::VISIBILITY_PRIVATE)
+        ->set('uploadedFiles', [$firstFile, $secondFile])
+        ->call('submit')
+        ->assertHasNoErrors()
+        ->assertSee('2 file berhasil diunggah.');
+
+    $files = File::query()->orderBy('original_name')->get();
+
+    expect($files)->toHaveCount(2)
+        ->and($files->pluck('original_name')->all())->toBe(['arsip-a.pdf', 'arsip-b.txt'])
+        ->and($tenant->refresh()->storage_used_bytes)->toBe($files->sum('file_size'))
+        ->and($uploadLink->refresh()->usage_count)->toBe(1);
+});
+
+it('rejects a batch when the total upload size exceeds the remaining tenant quota', function () {
+    Storage::fake('local');
+
+    $tenant = createTenantForGuestUpload([
+        'storage_quota_bytes' => 12 * 1024,
+        'storage_used_bytes' => 4 * 1024,
+    ]);
+    $uploadLink = createUploadLinkForGuestUpload($tenant);
+    setGuestUploadTenant($tenant);
+
+    Livewire::test(GuestUploadForm::class, ['code' => 'GUEST-UPLOAD'])
+        ->set('name', 'Batch Quota')
+        ->set('phoneNumber', '08123456789')
+        ->set('visibility', File::VISIBILITY_PRIVATE)
+        ->set('uploadedFiles', [
+            UploadedFile::fake()->create('besar-a.pdf', 5, 'application/pdf'),
+            UploadedFile::fake()->create('besar-b.pdf', 5, 'application/pdf'),
+        ])
+        ->call('submit')
+        ->assertHasErrors(['uploadedFiles']);
+
+    expect(File::query()->exists())->toBeFalse()
+        ->and(GuestUploader::query()->exists())->toBeFalse()
+        ->and($tenant->refresh()->storage_used_bytes)->toBe(4 * 1024)
+        ->and($uploadLink->refresh()->usage_count)->toBe(0);
 });
 
 it('rate limits repeated guest upload attempts', function () {
@@ -311,7 +370,7 @@ it('rate limits repeated guest upload attempts', function () {
             ->set('name', 'Budi Pengunggah')
             ->set('phoneNumber', 'invalid-phone')
             ->set('visibility', File::VISIBILITY_PRIVATE)
-            ->set('uploadedFile', UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf'))
+            ->set('uploadedFiles', [UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf')])
             ->call('submit')
             ->assertHasErrors(['phoneNumber']);
     }
@@ -320,7 +379,7 @@ it('rate limits repeated guest upload attempts', function () {
         ->set('name', 'Budi Pengunggah')
         ->set('phoneNumber', 'invalid-phone')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('arsip.pdf', 20, 'application/pdf')])
         ->call('submit')
-        ->assertHasErrors(['uploadedFile']);
+        ->assertHasErrors(['uploadedFiles']);
 });

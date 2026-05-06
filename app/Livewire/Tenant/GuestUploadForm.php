@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -35,9 +37,14 @@ class GuestUploadForm extends Component
 
     public string $visibility = ArchivedFile::VISIBILITY_PRIVATE;
 
-    public ?TemporaryUploadedFile $uploadedFile = null;
+    /** @var array<int, TemporaryUploadedFile> */
+    public array $uploadedFiles = [];
 
-    public string $uploadedFileName = '';
+    /** @var array<int, string> */
+    public array $uploadedFileNames = [];
+
+    /** @var array<int, array{name: string, tmpFilename: string}> */
+    public array $uploadedFileItems = [];
 
     public ?string $successMessage = null;
 
@@ -78,7 +85,7 @@ class GuestUploadForm extends Component
         $rateLimiterKey = Str::transliterate('upload|'.$tenant->slug.'|'.$this->uploadLink->code.'|'.$this->phoneNumber.'|'.request()->ip());
 
         if (RateLimiter::tooManyAttempts($rateLimiterKey, 5)) {
-            $this->addError('uploadedFile', 'Terlalu banyak percobaan upload. Coba lagi dalam '.RateLimiter::availableIn($rateLimiterKey).' detik.');
+            $this->addError('uploadedFiles', 'Terlalu banyak percobaan upload. Coba lagi dalam '.RateLimiter::availableIn($rateLimiterKey).' detik.');
 
             return;
         }
@@ -94,22 +101,29 @@ class GuestUploadForm extends Component
                         ArchivedFile::VISIBILITY_PRIVATE,
                     ]),
                 ],
-                'uploadedFile' => [
+                'uploadedFiles' => [
                     'required',
+                    'array',
+                    'min:1',
+                ],
+                'uploadedFiles.*' => [
                     'file',
                     'max:'.$maxUploadSizeKb,
                     'extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,txt',
                     'mimetypes:text/plain,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/jpeg,image/png',
                 ],
             ], [
-                'uploadedFile.required' => 'Silakan pilih file yang ingin diunggah.',
-                'uploadedFile.file' => 'File yang dipilih tidak valid.',
-                'uploadedFile.max' => 'Ukuran file terlalu besar. Maksimal '.$maxUploadSizeMbLabel.' MB per file.',
-                'uploadedFile.extensions' => 'Format file tidak didukung. Gunakan PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, atau TXT.',
-                'uploadedFile.mimetypes' => 'Tipe file tidak didukung. Gunakan file dokumen atau gambar yang diizinkan.',
+                'uploadedFiles.required' => 'Silakan pilih file yang ingin diunggah.',
+                'uploadedFiles.array' => 'Daftar file yang dipilih tidak valid.',
+                'uploadedFiles.min' => 'Silakan pilih minimal satu file yang ingin diunggah.',
+                'uploadedFiles.*.file' => 'Salah satu file yang dipilih tidak valid.',
+                'uploadedFiles.*.max' => 'Ukuran salah satu file terlalu besar. Maksimal '.$maxUploadSizeMbLabel.' MB per file.',
+                'uploadedFiles.*.extensions' => 'Ada format file yang tidak didukung. Gunakan PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, atau TXT.',
+                'uploadedFiles.*.mimetypes' => 'Ada tipe file yang tidak didukung. Gunakan file dokumen atau gambar yang diizinkan.',
             ], [
                 ...$this->identityAttributes(),
-                'uploadedFile' => 'file',
+                'uploadedFiles' => 'file',
+                'uploadedFiles.*' => 'file',
             ]);
         } catch (ValidationException $exception) {
             RateLimiter::hit($rateLimiterKey, 60);
@@ -117,75 +131,95 @@ class GuestUploadForm extends Component
             throw $exception;
         }
 
-        $fileSize = $this->uploadedFile?->getSize() ?? 0;
+        $uploadedFiles = $validated['uploadedFiles'];
+        $totalFileSize = collect($uploadedFiles)->sum(
+            fn (TemporaryUploadedFile $uploadedFile): int => $uploadedFile->getSize() ?? 0
+        );
         $phoneNumberNormalized = $phoneNumberNormalizer->normalize($validated['phoneNumber']);
         $guestToken = $this->guestToken($tenant);
-        $storedPath = null;
+        $storedPaths = [];
         $guestUploaderId = null;
 
-        DB::transaction(function () use ($tenant, $validated, $phoneNumberNormalized, $guestToken, $fileSize, &$storedPath, &$guestUploaderId, $rateLimiterKey): void {
-            $lockedTenant = Tenant::query()
-                ->whereKey($tenant->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+        try {
+            DB::transaction(function () use ($tenant, $validated, $uploadedFiles, $phoneNumberNormalized, $guestToken, $totalFileSize, &$storedPaths, &$guestUploaderId, $rateLimiterKey): void {
+                $lockedTenant = Tenant::query()
+                    ->whereKey($tenant->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $lockedUploadLink = UploadLink::query()
-                ->whereKey($this->uploadLink->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+                $lockedUploadLink = UploadLink::query()
+                    ->whereKey($this->uploadLink->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            abort_unless(Gate::forUser(null)->allows('uploadAsGuest', $lockedUploadLink->load('tenant')), 404);
+                abort_unless(Gate::forUser(null)->allows('uploadAsGuest', $lockedUploadLink->load('tenant')), 404);
 
-            if ($lockedTenant->storage_used_bytes + $fileSize > $lockedTenant->storage_quota_bytes) {
-                RateLimiter::hit($rateLimiterKey, 60);
-                $this->addError('uploadedFile', 'Kuota storage tenant sudah penuh.');
+                if ($lockedTenant->storage_used_bytes + $totalFileSize > $lockedTenant->storage_quota_bytes) {
+                    RateLimiter::hit($rateLimiterKey, 60);
+                    $this->addError('uploadedFiles', 'Kuota storage tenant tidak cukup untuk semua file yang dipilih.');
 
-                return;
+                    return;
+                }
+
+                $guestUploader = GuestUploader::query()->firstOrNew([
+                    'tenant_id' => $lockedTenant->id,
+                    'phone_number_normalized' => $phoneNumberNormalized,
+                ]);
+
+                if (! $guestUploader->exists) {
+                    $guestUploader->first_ip = request()->ip();
+                }
+
+                $guestUploader->fill([
+                    'name' => $validated['name'],
+                    'phone_number' => $validated['phoneNumber'],
+                    'guest_token' => $guestToken,
+                    'last_ip' => request()->ip(),
+                ])->save();
+                $guestUploaderId = $guestUploader->id;
+
+                foreach ($uploadedFiles as $uploadedFile) {
+                    $originalName = $uploadedFile->getClientOriginalName();
+                    $extension = $uploadedFile->getClientOriginalExtension();
+                    $mimeType = $uploadedFile->getMimeType();
+                    $fileSize = $uploadedFile->getSize() ?? 0;
+
+                    $storedPath = $uploadedFile->store(
+                        path: 'tenant-'.$lockedTenant->id.'/guest-uploads',
+                        options: 'local',
+                    );
+
+                    $storedPaths[] = $storedPath;
+
+                    ArchivedFile::query()->create([
+                        'tenant_id' => $lockedTenant->id,
+                        'guest_uploader_id' => $guestUploader->id,
+                        'upload_link_id' => $lockedUploadLink->id,
+                        'uploaded_via' => ArchivedFile::UPLOADED_VIA_GUEST_LINK,
+                        'original_name' => $originalName,
+                        'stored_name' => $storedPath,
+                        'extension' => $extension,
+                        'mime_type' => $mimeType,
+                        'file_size' => $fileSize,
+                        'visibility' => $validated['visibility'],
+                        'status' => $validated['visibility'] === ArchivedFile::VISIBILITY_PUBLIC
+                            ? ArchivedFile::STATUS_PENDING_REVIEW
+                            : ArchivedFile::STATUS_VALID,
+                        'document_year' => now()->year,
+                        'uploaded_at' => now(),
+                    ]);
+                }
+
+                $lockedTenant->increment('storage_used_bytes', $totalFileSize);
+                $lockedUploadLink->increment('usage_count');
+            });
+        } catch (Throwable $exception) {
+            foreach ($storedPaths as $storedPath) {
+                Storage::disk('local')->delete($storedPath);
             }
 
-            $guestUploader = GuestUploader::query()->firstOrNew([
-                'tenant_id' => $lockedTenant->id,
-                'phone_number_normalized' => $phoneNumberNormalized,
-            ]);
-
-            if (! $guestUploader->exists) {
-                $guestUploader->first_ip = request()->ip();
-            }
-
-            $guestUploader->fill([
-                'name' => $validated['name'],
-                'phone_number' => $validated['phoneNumber'],
-                'guest_token' => $guestToken,
-                'last_ip' => request()->ip(),
-            ])->save();
-            $guestUploaderId = $guestUploader->id;
-
-            $storedPath = $this->uploadedFile->store(
-                path: 'tenant-'.$lockedTenant->id.'/guest-uploads',
-                options: 'local',
-            );
-
-            ArchivedFile::query()->create([
-                'tenant_id' => $lockedTenant->id,
-                'guest_uploader_id' => $guestUploader->id,
-                'upload_link_id' => $lockedUploadLink->id,
-                'uploaded_via' => ArchivedFile::UPLOADED_VIA_GUEST_LINK,
-                'original_name' => $this->uploadedFile->getClientOriginalName(),
-                'stored_name' => $storedPath,
-                'extension' => $this->uploadedFile->getClientOriginalExtension(),
-                'mime_type' => $this->uploadedFile->getMimeType(),
-                'file_size' => $fileSize,
-                'visibility' => $validated['visibility'],
-                'status' => $validated['visibility'] === ArchivedFile::VISIBILITY_PUBLIC
-                    ? ArchivedFile::STATUS_PENDING_REVIEW
-                    : ArchivedFile::STATUS_VALID,
-                'document_year' => now()->year,
-                'uploaded_at' => now(),
-            ]);
-
-            $lockedTenant->increment('storage_used_bytes', $fileSize);
-            $lockedUploadLink->increment('usage_count');
-        });
+            throw $exception;
+        }
 
         if ($this->getErrorBag()->isNotEmpty()) {
             RateLimiter::hit($rateLimiterKey, 60);
@@ -208,21 +242,24 @@ class GuestUploadForm extends Component
         $this->hasStoredIdentity = true;
         $this->showIdentityFields = false;
 
-        $this->reset(['uploadedFile', 'uploadedFileName']);
-        $this->successMessage = 'File berhasil diunggah.';
+        $this->reset(['uploadedFiles', 'uploadedFileNames', 'uploadedFileItems']);
+        $this->successMessage = count($uploadedFiles) === 1
+            ? '1 file berhasil diunggah.'
+            : count($uploadedFiles).' file berhasil diunggah.';
         $this->uploadLink->refresh();
     }
 
-    public function updatedUploadedFile(): void
+    public function updatedUploadedFiles(): void
     {
-        $this->uploadedFileName = $this->uploadedFile?->getClientOriginalName() ?? '';
-        $this->resetErrorBag('uploadedFile');
+        $this->syncUploadedFileMetadata();
+
+        $this->resetErrorBag('uploadedFiles');
     }
 
-    public function clearUploadedFile(): void
+    public function clearUploadedFiles(): void
     {
-        $this->reset(['uploadedFile', 'uploadedFileName']);
-        $this->resetErrorBag('uploadedFile');
+        $this->reset(['uploadedFiles', 'uploadedFileNames', 'uploadedFileItems']);
+        $this->resetErrorBag('uploadedFiles');
     }
 
     public function updatedName(): void
@@ -377,5 +414,22 @@ class GuestUploadForm extends Component
         $tenant = $this->currentTenant();
 
         $this->queueUploaderIdentityCookie($tenant, $this->name, $this->phoneNumber);
+    }
+
+    protected function syncUploadedFileMetadata(): void
+    {
+        $this->uploadedFileItems = collect($this->uploadedFiles)
+            ->map(function (TemporaryUploadedFile $uploadedFile): array {
+                return [
+                    'name' => $uploadedFile->getClientOriginalName(),
+                    'tmpFilename' => $uploadedFile->getFilename(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        $this->uploadedFileNames = collect($this->uploadedFileItems)
+            ->pluck('name')
+            ->all();
     }
 }

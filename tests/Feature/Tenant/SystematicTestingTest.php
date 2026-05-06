@@ -144,7 +144,7 @@ it('covers the documented minimum systematic test checklist', function () {
         ->set('name', 'Guest Aktif')
         ->set('phoneNumber', '081277788899')
         ->set('visibility', File::VISIBILITY_PUBLIC)
-        ->set('uploadedFile', UploadedFile::fake()->create('aktif.pdf', 20, 'application/pdf'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('aktif.pdf', 20, 'application/pdf')])
         ->call('submit')
         ->assertHasNoErrors();
 
@@ -174,9 +174,9 @@ it('covers the documented minimum systematic test checklist', function () {
         ->set('name', 'Guest Quota')
         ->set('phoneNumber', '081299999999')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('besar.pdf', 5, 'application/pdf'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('besar.pdf', 5, 'application/pdf')])
         ->call('submit')
-        ->assertHasErrors(['uploadedFile']);
+        ->assertHasErrors(['uploadedFiles']);
 
     $internalTenant = createTenantForSystematicTesting('systematic-internal');
     createUploadLinkForSystematicTesting($internalTenant);
@@ -186,7 +186,7 @@ it('covers the documented minimum systematic test checklist', function () {
         ->set('name', 'Guest Internal')
         ->set('phoneNumber', '081211122233')
         ->set('visibility', File::VISIBILITY_INTERNAL)
-        ->set('uploadedFile', UploadedFile::fake()->create('internal.txt', 5, 'text/plain'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('internal.txt', 5, 'text/plain')])
         ->call('submit')
         ->assertHasNoErrors();
 
@@ -201,7 +201,7 @@ it('covers the documented minimum systematic test checklist', function () {
         ->set('name', 'Guest Private')
         ->set('phoneNumber', '081244455566')
         ->set('visibility', File::VISIBILITY_PRIVATE)
-        ->set('uploadedFile', UploadedFile::fake()->create('private.txt', 5, 'text/plain'))
+        ->set('uploadedFiles', [UploadedFile::fake()->create('private.txt', 5, 'text/plain')])
         ->call('submit')
         ->assertHasNoErrors();
 

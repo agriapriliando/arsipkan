@@ -112,7 +112,7 @@
             <div
                 class="drop-zone"
                 x-bind:class="{ 'dragover': isDragOver, 'opacity-50': isUploading }"
-                x-show="@js($uploadedFileName === '')"
+                x-show="@js($uploadedFileNames === [])"
                 x-on:click="if (!isUploading) $refs.fileInput.click()"
                 x-on:dragover.prevent="if (!isUploading) isDragOver = true"
                 x-on:dragleave.prevent="isDragOver = false"
@@ -120,6 +120,7 @@
             >
                 <i data-lucide="cloud-upload" class="text-muted mb-2" style="width: 32px; height: 32px"></i>
                 <p class="mb-0 text-muted small fw-medium">Klik atau seret file ke sini</p>
+                <p class="text-muted mb-1" style="font-size: 0.7rem">Bisa pilih banyak file sekaligus</p>
                 <p class="text-muted mb-1" style="font-size: 0.7rem">Maksimal 20MB per file</p>
                 <p class="text-muted mb-0" style="font-size: 0.68rem">Format yang didukung: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, TXT</p>
             </div>
@@ -128,19 +129,49 @@
                 id="fileInput"
                 x-ref="fileInput"
                 type="file"
-                wire:model="uploadedFile"
+                wire:model="uploadedFiles"
+                multiple
                 x-bind:disabled="isUploading"
             >
 
-            <div class="file-info" @style(['display: flex' => $uploadedFileName !== ''])>
-                <i data-lucide="file" class="text-primary" style="width: 20px"></i>
-                <span class="flex-grow-1">
-                    <span class="file-name-label">{{ $uploadedFileName }}</span>
-                </span>
-                <button type="button" class="btn btn-sm p-0 text-danger" wire:click="clearUploadedFile" x-bind:disabled="isUploading">
-                    <i data-lucide="x" style="width: 18px"></i>
-                </button>
-            </div>
+            @if ($uploadedFileNames !== [])
+                <div class="file-info-list">
+                    <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                        <div class="small fw-semibold text-secondary">{{ count($uploadedFileNames) }} file dipilih</div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" wire:click.prevent="clearUploadedFiles" x-bind:disabled="isUploading">
+                            Hapus Semua
+                        </button>
+                    </div>
+
+                    @foreach ($uploadedFileItems as $index => $uploadedFileItem)
+                        <div class="file-info" style="display: flex;" wire:key="selected-uploaded-file-{{ $uploadedFileItem['tmpFilename'] }}">
+                            <span
+                                class="text-primary d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                                style="width: 20px; height: 20px;"
+                                aria-hidden="true"
+                            >
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z"></path>
+                                    <path d="M14 2v5h5"></path>
+                                </svg>
+                            </span>
+                            <span class="flex-grow-1">
+                                <span class="file-name-label">{{ $uploadedFileItem['name'] }}</span>
+                            </span>
+                            <button
+                                type="button"
+                                class="btn btn-sm p-0 text-danger fw-bold lh-1"
+                                wire:click.prevent="$removeUpload('uploadedFiles', '{{ $uploadedFileItem['tmpFilename'] }}')"
+                                x-bind:disabled="isUploading"
+                                aria-label="Hapus file {{ $uploadedFileItem['name'] }}"
+                                title="Hapus file"
+                            >
+                                <span aria-hidden="true" style="font-size: 1.1rem;">&times;</span>
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
 
             <div x-cloak x-show="isUploading" class="mt-3">
                 <div class="d-flex justify-content-between align-items-center small text-muted mb-2">
@@ -155,13 +186,16 @@
                     ></div>
                 </div>
             </div>
-            @error('uploadedFile')
+            @error('uploadedFiles')
+                <div class="text-danger small mt-2">{{ $message }}</div>
+            @enderror
+            @error('uploadedFiles.*')
                 <div class="text-danger small mt-2">{{ $message }}</div>
             @enderror
 
             <button type="submit" class="btn-upload" wire:loading.attr="disabled" x-bind:disabled="isUploading">
-                <span x-show="!isUploading" wire:loading.remove wire:target="submit,uploadedFile">Unggah File</span>
-                <span x-cloak x-show="isUploading" wire:loading wire:target="submit,uploadedFile">Mengunggah...</span>
+                <span x-show="!isUploading" wire:loading.remove wire:target="submit,uploadedFiles">Unggah File</span>
+                <span x-cloak x-show="isUploading" wire:loading wire:target="submit,uploadedFiles">Mengunggah...</span>
             </button>
         </form>
     </div>
